@@ -1,0 +1,261 @@
+# Useful bash scripts
+
+### talk between two systems
+	nc -l 3333 workstation1
+	nc $IP1 3333 workstation2
+### how to kill a running nohup
+	ps -ef | grep (the command name)
+	kill PID
+	kill -9 PID (force to kill)
+### to check the number of cpus
+	cat /proc/cpuinfo | awk '/^processor/{print $3}' | wc -l
+	grep -c ^processor /proc/cpuinfo
+	nproc --all
+	lscpu -p [linux]
+	sysctl [MacOS]
+### to count the number of columns in files with different column number
+	awk '{print NF}' file.txt| sort -nu | tail -n 1 #NF is the built-in variable
+### count the number of reads in fastq files
+	cat file|echo $((`wc -l`/4))
+	for x in *.fastq;do cat $x|echo $((`wc -l`/4));done
+
+### translate \n with comma in files
+	cat file.txt |tr '\n' ',' > file.txt
+	cat file.txt |tr '\n' $'\t' > file.txt
+	cat negativeid.txt |tr '\n' ' ' > 1.txt
+### nohup usage
+	nohup command > out.file 2>&1 &
+	2: st
+### how to tar zip files in multiple threads in linux
+	sudo apt install pigz
+	tar cvf -test.txt|pigz > test.tar.gz
+### how to tar zip files
+	nohup tar -czvf trimmed.adapter.tar.gz adapter&
+### how to unzip tar.gz files
+	tar -xvzf bigfile.tar.gz -C /folder/subfolder/
+	x extract
+	c create
+	v verbose
+	z zipped file
+	f use the following tar archive for the operation
+	-C to extract the files into a specified directory
+	
+
+### show the size of hard disk usage of all the directory
+	df -h
+### show all the sub-directory hard disk size and also the total size
+	du -h --max-depth=1 your_user_folder/
+### show the total size of current folder sizes (disk usagetar)
+	du -sh folder_path
+
+### nano usage
+	cut the entire line, ctrl+k
+
+### mkdir the list of directories according to the file list
+	xargs mkdir <list.txt
+>xargs simply "flattens" your text file by replacing newlines with spaces, thereby invoking mkdir with a long list of arguments containing all your directory names at once instead of one at a time.
+
+### Download NCBInr/nt database
+	wget 'ftp://ftp.ncbi.nlm.nih.gov/blast/db/nr.*.tar.gz'
+	cat nr.*.tar.gz | tar -zxvi -f - -C .
+	
+	wget 'ftp://ftp.ncbi.nlm.nih.gov/blast/db/nt.*.tar.gz'
+
+### How to create a sym link
+	mv ../ncbi .
+	cd ..
+	ln -s ~/proc/ncbi/ ncbi
+	ln -s source_file myfile
+
+### create the alias for simplify the command line
+	alias script='cd /home/xiaoqiong/script'
+	alias meta='module add c3ddb/miniconda;source activate meta'
+
+### difference between ctrl+Z vs ctrl+ C
+	ctrl+ Z: hang down
+	ctrl+ C: kill the programme
+
+### Use filename as the column name
+    for file in ./file_*.txt
+    do
+    sed -i "1i\
+    rows $file" "$file"
+    done
+### for what purpose?
+	for x in *.txt ; do sed -i "1i\contigs\t$x" "$x";done
+### use file name to fill in a whole column
+	nawk '{a=FILENAME;}{print a"\t"$0}' yourFilename > yourFilename.bk && mv yourFilename.bk yourFilename
+### change comma delimited to tab
+	for file in *.txt; do cat $file | tr '[,]' '[\t]' > new_*.txt; done
+### extract lines based on line numbers
+	grep -n "keyword" contigs.faa [to show the line number which containing keyword]
+	sed -n x,yp contigs.faa > contig1.fa [extract line x to line y]
+	
+	grep -H "keyword" *.txt #can show the list of file containing keyword as also show the file names
+	grep -w "0$" test.txt #can extract the lines that only containing 0 in the end
+
+
+### Merge multiple files by common field
+https://stackoverflow.com/questions/13710876/merge-multiple-files-by-common-field-unix
+##
+	cut -f 1 file1 > delim   ## use first column as delimiter
+	i=0
+	for file in file*
+	do
+        i=$(($i+1))  ## for adding count to distinguish files from original ones
+        cut -f 2 $file > ${file}__${i}.temp
+	done
+	paste -d\\t delim *.temp > output
+
+### paste two files
+	paste -d "\0" file1 file2 > file2
+
+### Extract fasta sequences based on sequence ID
+	!xargs samtools faidx final.contigs.fa < Id.txt > Id.contigs.fa
+### find and replace the text in files
+	sed -i 's/old-text/new-text/g' input.txt
+	in MacOS `sed -i '' 's/original/new/g' test.txt`
+### find and replace the text in specific line in files
+	sed -i '5s/old-text/new-text/' input.txt #do it in place, also specify it is in which line [now is 5 line]
+
+# sed usage
+	sed '2,5d'
+	sed '2d'
+### add prefix/suffix each line in a file
+	sed -i -e 's/^/prefix/' file
+	sed -i -e 's/$/suffix/' file
+	sed allows in place editing via the -i parameter, or
+	sed -e 's/$/suffix/' file > newfile
+	^ means beginning of the line, $ means end of the line
+	sed 's/^X$/d' file #delete all the x
+# delete the first character each line in a file
+	sed 's/^.//' file1.txt > file2.txt
+
+>when trying to copy the data path, be careful to use '\' in front of '/' in order to let '/' have the meaning
+
+### separate taxon file
+	echo '#Kingdom#Phylum#Class#Order#Family#Genus#Species' | tr '#' '\t' > taxonomy-table.tsv
+	cut -f 1-2 path-to-your-taxonomy-file.tsv | tr ';' '\t' | tail -n +2 >> taxonomy-table.tsv
+
+### select all rows except the first row
+	tail -n+2 file.txt
+
+### extract fastq sequences based on sequence ID (fastq)
+seqtk subseq in.fq name.lst > out.fq
+
+
+### awk usage
+
+parse each field of document into each line
+
+	awk '{ print }' file.txt
+	awk '{ print $1 }' file.txt #print the first columns
+	awk '{ /[a-z]/ print }' file.txt #show every line containing characters
+	awk '{ /[0-9]/ print }' file.txt #show every line containing number
+	awk '{ /^[0-9]/ print }' file.txt #show every line starting with the number
+	awk '{ /[0-9]$/ print }' file.txt #show every line ending with the number
+	awk '{ if ($1 ~ /123/) print }' file.txt #show if the first column equal to 123
+	awk '{ if ($2 ~/[0-9]/) print }' file.txt #show if the second column containing the numbers
+	
+	awk '{ if ($3 ~ /100/) print }'
+	
+	awk ' NR==11 && NR<= 17{sum +=$3; if(NR == 17){exit}} END {print sum/7}' $FILE
+
+
+sum certain numbers in a column using awk. I would like to sum just column 3 of the "smiths" to get a total of 212. 
+	
+	awk -F '|' '$1 ~ /smiths/ {sum += $3} END {print sum}' inputfilename
+	awk '{sum+=$3} END { print "Average = ",sum/NR}'
+
+
+
+awk -F":" '{print $2 }' file.txt #print the second column based on ":" delimiter
+awk -F":" 'NR==1,NR==10 {print $1}' file.txt #print the first column, between row 1 to row 10 based on ":" delimiter, NR is the built in variables
+
+awk '$4 > 9' #grep the fourth column which more than 9
+awk 'NR%2==0' file > outfile #grep even lines from a txt file
+
+FS: Input field separator variable
+OFS: Output Field Separator Variable
+
+awk 'BEGIN{FS=OFS="/";filesuffix="genomic.fna.gz"}{ftpdir=$0;asm=$10;file=asm"_"filesuffix;print ftpdir,file}' ftpdirpaths > ftpfilepaths
+
+awk 'BEGIN{FS=OFS="/";filesuffix="genomic.fna.gz"}{ftpdir=$0;asm=$10;file=asm"_"filesuffix;print "wget ",ftpdir,file}' ftpdirpaths > ftpfilepaths.download
+
+awk 'BEGIN{FS=OFS=" ";}{print "wget",$0}' ftpfilepaths > ftpfilepaths.download
+
+awk '{sum+=$1} END {print sum}'
+
+
+### ls alias - to add color after ls -lh
+alias ls='ls --color=auto'
+
+### open a new R session
+	open -n /Applications/RStudio.app
+
+### new bash scripts, chmod a+x script.sh
+	#!/bin/bash
+	NAME=$1
+	echo "your name is $NAME"
+
+$0 is the name of the script, $1 is the first argument
+## extract seqs based on seqids
+	WPB073-TGCTACAT_S1_L006.kraken.id.filter
+	seqtk subseq in.fq name.lst > out.fq
+	Note: Use 'samtools faidx' if only a few regions are intended   #this is not good to use
+	
+	filterbyname.sh in=reads.fq out=filtered.fq names=names.txt #from bbmap
+	filterbyname.sh in=WPB073-TGCTACAT_S1_L006_R1_001.fastq.gz in2=WPB073-TGCTACAT_S1_L006_R2_001.fastq.gz out=WPB073-TGCTACAT_S1_R1.filtered.fastq out2=WPB073-TGCTACAT_S1_R2.filtered.fastq names=WPB073-TGCTACAT_S1_L006.kraken.id.filter
+
+bash programme run in 12/4/19
+	for x in *_R1_001.fastq.gz
+	do filterbyname.sh in=${x} in2=${x%R1_001.fastq.gz}R2_001.fastq.gz out=${x%_001.fastq.gz}.filtered.fastq out2=${x%R1_001.fastq.gz}R2.filter.fastq names=${x%_R1_001.fastq.gz}.kraken.id.filter
+	done
+
+# bowtie2 error message in 16/4/19
+	bowtie2-align died with signal 11 (SEGV)
+	reason: as i dont have exact files in the input folder
+
+# Linearizing the complete fasta file
+	while read line;do if [ "${line:0:1}" == ">" ]; then echo -e "\n"$line; else echo $line | tr -d '\n' ; fi; done < input.fasta > output.fasta #too slow
+	
+	sed -e 's/\(^>.*$\)/#\1#/' scaffolds.fasta | tr -d "\r" | tr -d "\n" | sed -e 's/$/#/' | tr "#" "\n" | sed -e '/^$/d'
+
+
+	bioawk -c fastx '{print ">"$name; print $seq}'   #useful link
+
+	https://www.biostars.org/p/363676/
+bash programme run bbmap scripts in 25/4/19,#note: using single quote rather than double quote
+for x in *_1.fastq.gz
+do echo '#!/bin/bash' >> ${x%_1.fastq.gz}.sh  
+echo 'bbmap.sh in1='${x}' in2='${x%_1.fastq.gz}_2.fastq.gz 'path=/scratch/users/xiaoqiong/database/RVDB out='${x%_1.fastq.gz}.sam >> ${x%_1.fastq.gz}.sh
+done
+
+for x in 181221Alm*.sh
+do echo 'sbatch -p sched_mem1TB -c 40 -t 5-00:00:00 --mem=1000000 -J' $x' -o' ${x%.sh}.out' -e' ${x%.sh}.err ${x} >> all.sh
+done
+
+
+# split usage
+split -d -b 200M -l 500 file.txt log
+-b file sizes
+-l line numbers
+-d rename the splited file with log1, log2, log3, ...., logn
+split -l 1000
+
+# sum up specific column numbers
+awk '{sum+=$1;}END{print $1}' infile > outfile
+
+awk '{for (i=1;i<=NF;i++)$i=(a[i]+=$i)}END{print}' file
+{for (i=1;i<=NF;i++)         Set field to 1 and increment through
+$i=(a[i]+=$i)                Set the field to the sum + the value in field
+END{print}                   Print the last line which now contains the sums
+
+tail -n+2 | awk '{for (i=1;i<=NF;i++)$i=(a[i]+=$i)}END{print}' kraken_table.txt|less
+
+numsum -c FILENAME [function]
+-c   ---    Print out the sum of each column.
+
+# Find a file matching with certain pattern and giving that file name as value to a variable in shell script? https://unix.stackexchange.com/questions/361655/find-a-file-matching-with-certain-pattern-and-giving-that-file-name-as-value-to
+# How to List all files in a directory and export result to a text file?  https://stackoverflow.com/questions/14314947/how-to-list-all-files-in-a-directory-and-export-result-to-a-text-file
+find /data/meta_augmentin/meta_raw_data/combined -type f -iname "*_1.fq.gz" -printf '%p\n'|sort > test
