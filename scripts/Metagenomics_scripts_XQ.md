@@ -531,60 +531,59 @@ subcommand:  merge       combine multiple files
 ### sequencing data synthetics
 	Grinder: a versatile amplicon and shotgun sequence simulator
 	This is the first tool to simulate amplicon datasets (e.g. 16S rRNA) widely used by microbial ecologists. Grinder can create sequence libraries with a specific community structure, α and β diversities and experimental biases (e.g. chimeras, gene copy number variation) for commonly used sequencing platforms.
-###
-conda create --name crass python=3.5
-conda install -c bioconda crass -y
-conda activate crass
+
 ### crispr assembled_viral_contigs
-crass-assembler --velvet -x crass.crispr -g NUM -s s1,s2,s3,s4,s5 -i DIR
+	crass-assembler --velvet -x crass.crispr -g NUM -s s1,s2,s3,s4,s5 -i DIR
 
 ### multiple alingnment
+tools
+
 	ClustalW
 	MUSCLE -> developed by Robert Edgar
-## Make an alignment and save to a file in FASTA format:
+
+muscle/mafft alignment and export as fasta format
+	
 	muscle -in seqs.fa -out seqs.afa
-	mafft --6merpair --thread -48 --keeplength --addfragments in.seq.fasta SARSCOV2.NC_045512.fasta > in.align.mafft.fasta
 	mafft --thread -40 --auto in > out
-!mafft --6merpair --thread -48 --keeplength --addfragments b117.seq.fasta SARSCOV2.NC_045512.fasta > b117.align.mafft.fasta
-## Write alignment to the console in CLUSTALW format (more readable than FASTA):
+	mafft --6merpair --thread -48 --keeplength --addfragments in.seq.fasta SARSCOV2.NC_045512.fasta > in.align.mafft.fasta
+
+muscle/mafft alignment and export to fasta as CLUSTALW format (more readable than FASTA)
+
 	muscle -in seqs.fa -clw -out seqs.aln
 	mafft --thread -40 --clustalout seq.fasta > align.fa  #https://mafft.cbrc.jp/alignment/software/
 	mafft is doing in the interactive mode #https://towardsdatascience.com/
 	how-to-perform-sequence-alignment-on-2019-ncov-with-mafft-96c1944da8c6
-##c ount the number of sequences
+
+count the number of sequences
+
 	zcat my.fastq.gz | echo $((`wc -l`/4))
+
 ### taxonkit manual, https://wemp.app/posts/91cab928-7c98-4ea3-b54a-defaff169a08
 # convert the accession id to the taxid
 	blastdbcmd -db /data/database/NCBI_nt/nt -entry all -outfmt "%a %T"|pigz -c > nt.acc2taxid.txt.gz
 ### convert the kmer covereage to base coverage
-http://seqanswers.com/forums/showthread.php?t=1529
-http://seqanswers.com/forums/showthread.php?t=6887
-Cx=Ck*L/(L-k+1)
-where k is your kmer setting and L is your read length
-so if I used a kmer of 37 and an average read length of 50
-Cx=202*50/(50-37+1)=721X
+	http://seqanswers.com/forums/showthread.php?t=1529
+	http://seqanswers.com/forums/showthread.php?t=6887
+	Cx=Ck*L/(L-k+1)
+	where k is your kmer setting and L is your read length
+	so if I used a kmer of 37 and an average read length of 50
+	Cx=202*50/(50-37+1)=721X
 
-
-## How to redirect output to a file and stdout
-program [arguments...] 2>&1 | tee -a outfile
-2>&1 dumps the stderr and stdout streams. tee outfile takes the stream it gets and writes it to the screen and to the file "outfile".
-https://stackoverflow.com/questions/418896/how-to-redirect-output-to-a-file-and-stdout	
-# Redirect to log file. and run scripts in the Background
-/home/my_user/scripts/my_script.sh >> /home/my_user/scripts/logs/my_script.log 2>&1 &
-https://oracle-base.com/articles/linux/linux-scripts-running-in-the-background
-https://stackoverflow.com/questions/818255/in-the-shell-what-does-21-mean
+## [How to redirect output to a file and stdout](https://stackoverflow.com/questions/418896/how-to-redirect-output-to-a-file-and-stdout)
+	program [arguments...] 2>&1 | tee -a outfile
+	2>&1 dumps the stderr and stdout streams. tee outfile takes the stream it gets and writes it to the screen and to the file "outfile".
+	
+# [Redirect to log file](https://stackoverflow.com/questions/818255/in-the-shell-what-does-21-mean). and [run scripts in the Background](https://oracle-base.com/articles/linux/linux-scripts-running-in-the-background)
+	/home/my_user/scripts/my_script.sh >> /home/my_user/scripts/logs/my_script.log 2>&1 &
 
 
 ## NCBI project download
-Limit download to 1000 reads from file SRR519926.
-
+	Limit download to 1000 reads from file SRR519926.
 	fastq-dump -X 10000 --split-files SRR519926
-
 
 ## construct phylogenetic tree
 
 	https://docs.qiime2.org/2019.10/tutorials/phylogeny/
-
 
 
 ## fragment recruitment plot
@@ -603,7 +602,6 @@ compare if two files are identical or different
 
 
 ## bcftools
-
 
 output
 
