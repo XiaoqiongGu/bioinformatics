@@ -329,6 +329,30 @@ sort by readName
 	samtools view -f 4 file.bam > unmapped.sam
 	samtools view -b -f 4 file.bam > unmapped.bam -@ 40 # get the unmapped reads using parameter f, to get the output in bam using parameter -b
 	samtools view -b -F 4 file.bam > mapped.bam -@ 40 # get the mapped reads using parameter F, which works like -v of grep, to get the output in bam using parameter -b
+
+### [virsorter2](https://www.protocols.io/view/viral-sequence-identification-sop-with-virsorter2-bwm5pc86)
+
+#### Run VirSorter2
+	virsorter run --keep-original-seq -i 5seq.fa -w vs2-pass1 --include-groups dsDNAphage,NCLDV,RNA,ssDNA,lavidaviridae --min-length 5000 --min-score 0.5 -j 40 all
+
+#### Run checkV
+	checkv end_to_end vs2-pass1/final-viral-combined.fa checkv -t 40 -d /data1/database/checkv-db-v1.0/
+
+#### Run VirSorter2 again
+	cat checkv/proviruses.fna checkv/viruses.fna > checkv/combined.fna 
+	virsorter run --seqname-suffix-off --viral-gene-enrich-off --provirus-off --prep-for-dramv -i checkv/combined.fna -w vs2-pass2 --include-groups dsDNAphage,NCLDV,RNA,ssDNA,lavidaviridae --min-length 5000 --min-score 0.5 -j 40 all
+
+#### Run DRAMv
+	1. step 1 annotate
+	
+	DRAM-v.py annotate -i vs2-pass2/for-dramv/final-viral-combined-for-dramv.fa -v vs2-pass2/for-dramv/viral-affi-contigs-for-dramv.tab -o dramv-annotate --skip_trnascan --threads 28 --min_contig_size 1000
+	
+	2. step 2 summarize anntotations
+
+	DRAM-v.py distill -i dramv-annotate/annotations.tsv -o dramv-distill
+	
+	
+
 ### concoct
 	velveth velveth_k71 71 -fasta -shortPaired -separate All_R1.fa All_R2.fa  
 	velvetg velveth_k71 -ins_length 400 -exp_cov auto -cov_cutoff auto  
@@ -517,16 +541,20 @@ crass-assembler --velvet -x crass.crispr -g NUM -s s1,s2,s3,s4,s5 -i DIR
 ### multiple alingnment
 	ClustalW
 	MUSCLE -> developed by Robert Edgar
-##Make an alignment and save to a file in FASTA format:
+## Make an alignment and save to a file in FASTA format:
 	muscle -in seqs.fa -out seqs.afa
-##Write alignment to the console in CLUSTALW format (more readable than FASTA):
+	mafft --6merpair --thread -48 --keeplength --addfragments in.seq.fasta SARSCOV2.NC_045512.fasta > in.align.mafft.fasta
+	mafft --thread -40 --auto in > out
+!mafft --6merpair --thread -48 --keeplength --addfragments b117.seq.fasta SARSCOV2.NC_045512.fasta > b117.align.mafft.fasta
+## Write alignment to the console in CLUSTALW format (more readable than FASTA):
 	muscle -in seqs.fa -clw -out seqs.aln
 	mafft --thread -40 --clustalout seq.fasta > align.fa  #https://mafft.cbrc.jp/alignment/software/
-	mafft is doing in the interactive mode #https://towardsdatascience.com/how-to-perform-sequence-alignment-on-2019-ncov-with-mafft-96c1944da8c6
-##count the number of sequences
+	mafft is doing in the interactive mode #https://towardsdatascience.com/
+	how-to-perform-sequence-alignment-on-2019-ncov-with-mafft-96c1944da8c6
+##c ount the number of sequences
 	zcat my.fastq.gz | echo $((`wc -l`/4))
-###taxonkit manual, https://wemp.app/posts/91cab928-7c98-4ea3-b54a-defaff169a08
-#convert the accession id to the taxid
+### taxonkit manual, https://wemp.app/posts/91cab928-7c98-4ea3-b54a-defaff169a08
+# convert the accession id to the taxid
 	blastdbcmd -db /data/database/NCBI_nt/nt -entry all -outfmt "%a %T"|pigz -c > nt.acc2taxid.txt.gz
 ### convert the kmer covereage to base coverage
 http://seqanswers.com/forums/showthread.php?t=1529
