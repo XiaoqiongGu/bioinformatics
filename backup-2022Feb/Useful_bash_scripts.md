@@ -118,33 +118,20 @@ https://stackoverflow.com/questions/13710876/merge-multiple-files-by-common-fiel
 ### find and replace the text in specific line in files
 	sed -i '5s/old-text/new-text/' input.txt #do it in place, also specify it is in which line [now is 5 line]
 
-# sed
-
-delete lines :
-
-	sed '7,9d' in > out 	# from lines 7 to 9
-	sed '2d' in > out 		# delete line 2
-	sed '/oops/d' in > out  # remove the lines containing “oops”
-	sed '/^$/d' in > out	# remove all empty lines
-	sed '$d' in > out		# remove the last line
-
-delete the first character each line in a file
-
-	sed 's/^.//' in > out 
-
-add prefix/suffix each line in a file
-
+# sed usage
+	sed '2,5d'
+	sed '2d'
+### add prefix/suffix each line in a file
 	sed -i -e 's/^/prefix/' file
 	sed -i -e 's/$/suffix/' file
 	sed allows in place editing via the -i parameter, or
-	sed -e 's/$/suffix/' in > out 
+	sed -e 's/$/suffix/' file > newfile
 	^ means beginning of the line, $ means end of the line
 	sed 's/^X$/d' file #delete all the x
+# delete the first character each line in a file
+	sed 's/^.//' file1.txt > file2.txt
 
-
-
-
-when trying to copy the data path, be careful to use '\' in front of '/' in order to let '/' have the meaning
+>when trying to copy the data path, be careful to use '\' in front of '/' in order to let '/' have the meaning
 
 ### separate taxon file
 	echo '#Kingdom#Phylum#Class#Order#Family#Genus#Species' | tr '#' '\t' > taxonomy-table.tsv
@@ -154,7 +141,7 @@ when trying to copy the data path, be careful to use '\' in front of '/' in orde
 	tail -n+2 file.txt
 
 ### extract fastq sequences based on sequence ID (fastq)
-	seqtk subseq in.fq name.lst > out.fq
+seqtk subseq in.fq name.lst > out.fq
 
 
 ### awk usage
@@ -169,8 +156,9 @@ parse each field of document into each line
 	awk '{ /[0-9]$/ print }' file.txt #show every line ending with the number
 	awk '{ if ($1 ~ /123/) print }' file.txt #show if the first column equal to 123
 	awk '{ if ($2 ~/[0-9]/) print }' file.txt #show if the second column containing the numbers
-
+	
 	awk '{ if ($3 ~ /100/) print }'
+	
 	awk ' NR==11 && NR<= 17{sum +=$3; if(NR == 17){exit}} END {print sum/7}' $FILE
 
 
@@ -179,27 +167,28 @@ sum certain numbers in a column using awk. I would like to sum just column 3 of 
 	awk -F '|' '$1 ~ /smiths/ {sum += $3} END {print sum}' inputfilename
 	awk '{sum+=$3} END { print "Average = ",sum/NR}'
 
-	
-	 -F":" '{print $2 }' file.txt #print the second column based on ":" delimiter
-	awk -F":" 'NR==1,NR==10 {print $1}' file.txt #print the first column, between row 1 to row 10 based on ":" delimiter, NR is the built in variables
 
-	awk '$4 > 9' #grep the fourth column which more than 9
-	awk 'NR%2==0' file > outfile #grep even lines from a txt file
-	
-	FS: Input field separator variable
-	OFS: Output Field Separator Variable
-	
-	awk 'BEGIN{FS=OFS="/";filesuffix="genomic.fna.gz"}{ftpdir=$0;asm=$10;file=asm"_"filesuffix;print ftpdir,file}' ftpdirpaths > ftpfilepaths
-	
-	awk 'BEGIN{FS=OFS="/";filesuffix="genomic.fna.gz"}{ftpdir=$0;asm=$10;file=asm"_"filesuffix;print "wget ",ftpdir,file}' ftpdirpaths > ftpfilepaths.download
-	
-	awk 'BEGIN{FS=OFS=" ";}{print "wget",$0}' ftpfilepaths > ftpfilepaths.download
-	
-	awk '{sum+=$1} END {print sum}'
+
+awk -F":" '{print $2 }' file.txt #print the second column based on ":" delimiter
+awk -F":" 'NR==1,NR==10 {print $1}' file.txt #print the first column, between row 1 to row 10 based on ":" delimiter, NR is the built in variables
+
+awk '$4 > 9' #grep the fourth column which more than 9
+awk 'NR%2==0' file > outfile #grep even lines from a txt file
+
+FS: Input field separator variable
+OFS: Output Field Separator Variable
+
+awk 'BEGIN{FS=OFS="/";filesuffix="genomic.fna.gz"}{ftpdir=$0;asm=$10;file=asm"_"filesuffix;print ftpdir,file}' ftpdirpaths > ftpfilepaths
+
+awk 'BEGIN{FS=OFS="/";filesuffix="genomic.fna.gz"}{ftpdir=$0;asm=$10;file=asm"_"filesuffix;print "wget ",ftpdir,file}' ftpdirpaths > ftpfilepaths.download
+
+awk 'BEGIN{FS=OFS=" ";}{print "wget",$0}' ftpfilepaths > ftpfilepaths.download
+
+awk '{sum+=$1} END {print sum}'
 
 
 ### ls alias - to add color after ls -lh
-	alias ls='ls --color=auto'
+alias ls='ls --color=auto'
 
 ### open a new R session
 	open -n /Applications/RStudio.app
@@ -233,7 +222,9 @@ bash programme run in 12/4/19
 	sed -e 's/\(^>.*$\)/#\1#/' scaffolds.fasta | tr -d "\r" | tr -d "\n" | sed -e 's/$/#/' | tr "#" "\n" | sed -e '/^$/d'
 
 
-	
+	bioawk -c fastx '{print ">"$name; print $seq}'   #useful link
+
+	https://www.biostars.org/p/363676/
 bash programme run bbmap scripts in 25/4/19,#note: using single quote rather than double quote
 for x in *_1.fastq.gz
 do echo '#!/bin/bash' >> ${x%_1.fastq.gz}.sh  

@@ -119,14 +119,6 @@ get sequences length
 		
 	bioawk -c fastx '{print $name,length($seq)}' input.fa
 
-
-linearize the fasta file, [benchmark](https://www.biostars.org/p/363676/)
-
-	seqkit seq -w 0 input.fa 
-	seqtk seq input.fa
-	bioawk -c fastx '{print ">"$name; print $seq}'   
-
-	
 ### [remove too short reads](http://www.metagenomics.wiki/tools/short-read/filter-remove-too-short-reads-length)
 
 filter sequences length based on certain cut-off
@@ -175,9 +167,12 @@ visualize assemblies results
 cross assembly
 
 	1. can cat *.R1.fasta.gz > combined.R1.fasta.gz, cat *.R2.fasta.gz > combined.R2.fasta.gz  
-	2.`megahit -t 25 -m 0.8  --min-contig-len 1000 -1 pe1_R1.fq,pe2_R1.fq,pe3_R1.fq -2 pe1_R2.fq,pe2_R2.fq,pe3_R2.fq -o outdir` [comma-separated list, option -> input -> output directory, no need add quate]
+	2.`megahit -t 25 -m 0.8 -1 pe1_R1.fq,pe2_R1.fq,pe3_R1.fq -2 pe1_R2.fq,pe2_R2.fq,pe3_R2.fq -o outdir` [comma-separated list, option -> input -> output directory, no need add quate]
 
+# 20200318 job running for clinical datasets S2
 
+	megahit -t 30 -m 0.8 -1 S2D0_1.fq.gz,S2D14_1.fq.gz,S2D1_1.fq.gz,S2D28_1.fq.gz,S2D2_1.fq.gz,S2D3_1.fq.gz -2 S2D0_2.fq.gz,S2D14_2.fq.gz,S2D1_2.fq.gz,S2D28_2.fq.gz,S2D2_2.fq.gz,S2D3_2.fq.gz --min-contig-len 1000 -o s2_megahit
+	megahit -t 25 -m 0.8 --min-contig-len 1000 -1 MBR_1_S4_R1_001.fastq,MBR_3_S10_R1_001.fastq,MBR_5_S5_R1_001.fastq,MBR_6_S9_R1_001.fastq,MBR_8_S5_R1_001.fastq,MBR_S11_R1.fastq -2 MBR_1_S4_R2_001.fastq,MBR_3_S10_R2_001.fastq,MBR_5_S5_R2_001.fastq,MBR_6_S9_R2_001.fastq,MBR_8_S5_R2_001.fastq,MBR_S11_R2.fastq -o megahit_assembled_viral_contigs
 
 ### Velvet
 
@@ -329,64 +324,31 @@ sort a BAM file
 sort by readName
 
 	samtools sort -n SAMPLE.bam -o SAMPLE_sorted.bam
+
+	
 	samtools view -f 4 file.bam > unmapped.sam
 	samtools view -b -f 4 file.bam > unmapped.bam -@ 40 # get the unmapped reads using parameter f, to get the output in bam using parameter -b
 	samtools view -b -F 4 file.bam > mapped.bam -@ 40 # get the mapped reads using parameter F, which works like -v of grep, to get the output in bam using parameter -b
-
-### [virsorter2](https://www.protocols.io/view/viral-sequence-identification-sop-with-virsorter2-bwm5pc86)
-
-Run VirSorter2
-
-	virsorter run --keep-original-seq -i 5seq.fa -w vs2-pass1 --include-groups dsDNAphage,NCLDV,RNA,ssDNA,lavidaviridae --min-length 5000 --min-score 0.5 -j 40 all
-
-Run checkV
-
-	checkv end_to_end vs2-pass1/final-viral-combined.fa checkv -t 40 -d /data1/database/checkv-db-v1.0/
-
-Run VirSorter2 again
-
-	cat checkv/proviruses.fna checkv/viruses.fna > checkv/combined.fna 
-	virsorter run --seqname-suffix-off --viral-gene-enrich-off --provirus-off --prep-for-dramv -i checkv/combined.fna -w vs2-pass2 --include-groups dsDNAphage,NCLDV,RNA,ssDNA,lavidaviridae --min-length 5000 --min-score 0.5 -j 40 all
-
-Run DRAMv
-
-	1. step 1 annotate
-	
-	DRAM-v.py annotate -i vs2-pass2/for-dramv/final-viral-combined-for-dramv.fa -v vs2-pass2/for-dramv/viral-affi-contigs-for-dramv.tab -o dramv-annotate --skip_trnascan --threads 28 --min_contig_size 1000
-	
-	2. step 2 summarize anntotations
-
-	DRAM-v.py distill -i dramv-annotate/annotations.tsv -o dramv-distill
-
-
 ### concoct
 	velveth velveth_k71 71 -fasta -shortPaired -separate All_R1.fa All_R2.fa  
 	velvetg velveth_k71 -ins_length 400 -exp_cov auto -cov_cutoff auto  
-
 ### picard
-	
-	to run jar file
-	java -jar MarkDuplicates.jar
+to run jar file
 
+	java -jar MarkDuplicates.jar
 ### checkm
 	checkm lineage_wf -f CheckM.txt -t 8 -x fa bins_dir/ bins/CheckM
 
 # detect plasmid from WGS
-
-PlasmidSeeker  
-
+### PlasmidSeeker  
 	git clone https://github.com/bioinfo-ut/PlasmidSeeker/`
 	cd PlasmidSeeker/
 	bash plasmidseeker_ecoli_test.sh
-	#help download db_w20 database
+###help download db_w20 database
 	cat EC_1_results.txt
-
-PlasmidSpades
-
+### PlasmidSpades
 	plasmidspades.py -1 R1.fastq.gz -2 R2.fastq.gz -o assembly/ -t 50
-
-Plasflow
-
+### Plasflow
 	source activate plasflow
 	filter_sequences_by_length.pl -input input_dataset.fasta -output filtered_output.fasta -thresh sequence_length_threshold
 	PlasFlow.py --input Citrobacter_freundii_strain_CAV1321_scaffolds.fasta --output test.plasflow_predictions.tsv --threshold 0.7
@@ -545,61 +507,56 @@ subcommand:  merge       combine multiple files
 ### sequencing data synthetics
 	Grinder: a versatile amplicon and shotgun sequence simulator
 	This is the first tool to simulate amplicon datasets (e.g. 16S rRNA) widely used by microbial ecologists. Grinder can create sequence libraries with a specific community structure, α and β diversities and experimental biases (e.g. chimeras, gene copy number variation) for commonly used sequencing platforms.
-
+###
+conda create --name crass python=3.5
+conda install -c bioconda crass -y
+conda activate crass
 ### crispr assembled_viral_contigs
-	crass-assembler --velvet -x crass.crispr -g NUM -s s1,s2,s3,s4,s5 -i DIR
+crass-assembler --velvet -x crass.crispr -g NUM -s s1,s2,s3,s4,s5 -i DIR
 
 ### multiple alingnment
-tools
-
 	ClustalW
 	MUSCLE -> developed by Robert Edgar
-	mafft ->  Multiple alignment of a large number of short and highly similar sequences. Typical data size is up to ∼200,000 sequences × ∼5,000 sites (including gaps), but depends on similarity
-
-muscle/mafft alignment and export as *fasta* format
-
+##Make an alignment and save to a file in FASTA format:
 	muscle -in seqs.fa -out seqs.afa
-	mafft --thread -40 --auto in > out
-	mafft --6merpair --thread -40 --keeplength --addfragments in.seq.fasta SARSCOV2.NC_045512.fasta > in.align.mafft.fasta
-	mafft --parttree --thread -40 in > out ## align up to 1.4 million sequences, check out this paper: Large multiple sequence alignments with a root-to-leaf regressive method
-
-muscle/mafft alignment and export to fasta as *CLUSTALW* format (more readable than FASTA)
-
+##Write alignment to the console in CLUSTALW format (more readable than FASTA):
 	muscle -in seqs.fa -clw -out seqs.aln
 	mafft --thread -40 --clustalout seq.fasta > align.fa  #https://mafft.cbrc.jp/alignment/software/
-	mafft is doing in the interactive mode #https://towardsdatascience.com/
-	how-to-perform-sequence-alignment-on-2019-ncov-with-mafft-96c1944da8c6
-
-count the number of sequences
-
+	mafft is doing in the interactive mode #https://towardsdatascience.com/how-to-perform-sequence-alignment-on-2019-ncov-with-mafft-96c1944da8c6
+##count the number of sequences
 	zcat my.fastq.gz | echo $((`wc -l`/4))
-
-### taxonkit manual, https://wemp.app/posts/91cab928-7c98-4ea3-b54a-defaff169a08
-# convert the accession id to the taxid
+###taxonkit manual, https://wemp.app/posts/91cab928-7c98-4ea3-b54a-defaff169a08
+#convert the accession id to the taxid
 	blastdbcmd -db /data/database/NCBI_nt/nt -entry all -outfmt "%a %T"|pigz -c > nt.acc2taxid.txt.gz
 ### convert the kmer covereage to base coverage
-	http://seqanswers.com/forums/showthread.php?t=1529
-	http://seqanswers.com/forums/showthread.php?t=6887
-	Cx=Ck*L/(L-k+1)
-	where k is your kmer setting and L is your read length
-	so if I used a kmer of 37 and an average read length of 50
-	Cx=202*50/(50-37+1)=721X
+http://seqanswers.com/forums/showthread.php?t=1529
+http://seqanswers.com/forums/showthread.php?t=6887
+Cx=Ck*L/(L-k+1)
+where k is your kmer setting and L is your read length
+so if I used a kmer of 37 and an average read length of 50
+Cx=202*50/(50-37+1)=721X
 
-## [How to redirect output to a file and stdout](https://stackoverflow.com/questions/418896/how-to-redirect-output-to-a-file-and-stdout)
-	program [arguments...] 2>&1 | tee -a outfile
-	2>&1 dumps the stderr and stdout streams. tee outfile takes the stream it gets and writes it to the screen and to the file "outfile".
-	
-# [Redirect to log file](https://stackoverflow.com/questions/818255/in-the-shell-what-does-21-mean). and [run scripts in the Background](https://oracle-base.com/articles/linux/linux-scripts-running-in-the-background)
-	/home/my_user/scripts/my_script.sh >> /home/my_user/scripts/logs/my_script.log 2>&1 &
+
+## How to redirect output to a file and stdout
+program [arguments...] 2>&1 | tee -a outfile
+2>&1 dumps the stderr and stdout streams. tee outfile takes the stream it gets and writes it to the screen and to the file "outfile".
+https://stackoverflow.com/questions/418896/how-to-redirect-output-to-a-file-and-stdout	
+# Redirect to log file. and run scripts in the Background
+/home/my_user/scripts/my_script.sh >> /home/my_user/scripts/logs/my_script.log 2>&1 &
+https://oracle-base.com/articles/linux/linux-scripts-running-in-the-background
+https://stackoverflow.com/questions/818255/in-the-shell-what-does-21-mean
 
 
 ## NCBI project download
-	Limit download to 1000 reads from file SRR519926.
+Limit download to 1000 reads from file SRR519926.
+
 	fastq-dump -X 10000 --split-files SRR519926
+
 
 ## construct phylogenetic tree
 
 	https://docs.qiime2.org/2019.10/tutorials/phylogeny/
+
 
 
 ## fragment recruitment plot
@@ -618,6 +575,7 @@ compare if two files are identical or different
 
 
 ## bcftools
+
 
 output
 
