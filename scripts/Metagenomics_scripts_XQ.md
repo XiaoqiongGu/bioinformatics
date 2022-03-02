@@ -119,6 +119,15 @@ get sequences length
 		
 	bioawk -c fastx '{print $name,length($seq)}' input.fa
 
+
+linearize the fasta file
+
+	#useful link for benchmark: https://www.biostars.org/p/363676/ -> seqkit seq and seqtk seq are faster than other scripts.
+	seqkit seq -w 0 input.fa 
+	seqtk seq input.fa
+	bioawk -c fastx '{print ">"$name; print $seq}'   
+
+	
 ### [remove too short reads](http://www.metagenomics.wiki/tools/short-read/filter-remove-too-short-reads-length)
 
 filter sequences length based on certain cut-off
@@ -167,12 +176,9 @@ visualize assemblies results
 cross assembly
 
 	1. can cat *.R1.fasta.gz > combined.R1.fasta.gz, cat *.R2.fasta.gz > combined.R2.fasta.gz  
-	2.`megahit -t 25 -m 0.8 -1 pe1_R1.fq,pe2_R1.fq,pe3_R1.fq -2 pe1_R2.fq,pe2_R2.fq,pe3_R2.fq -o outdir` [comma-separated list, option -> input -> output directory, no need add quate]
+	2.`megahit -t 25 -m 0.8  --min-contig-len 1000 -1 pe1_R1.fq,pe2_R1.fq,pe3_R1.fq -2 pe1_R2.fq,pe2_R2.fq,pe3_R2.fq -o outdir` [comma-separated list, option -> input -> output directory, no need add quate]
 
-# 20200318 job running for clinical datasets S2
 
-	megahit -t 30 -m 0.8 -1 S2D0_1.fq.gz,S2D14_1.fq.gz,S2D1_1.fq.gz,S2D28_1.fq.gz,S2D2_1.fq.gz,S2D3_1.fq.gz -2 S2D0_2.fq.gz,S2D14_2.fq.gz,S2D1_2.fq.gz,S2D28_2.fq.gz,S2D2_2.fq.gz,S2D3_2.fq.gz --min-contig-len 1000 -o s2_megahit
-	megahit -t 25 -m 0.8 --min-contig-len 1000 -1 MBR_1_S4_R1_001.fastq,MBR_3_S10_R1_001.fastq,MBR_5_S5_R1_001.fastq,MBR_6_S9_R1_001.fastq,MBR_8_S5_R1_001.fastq,MBR_S11_R1.fastq -2 MBR_1_S4_R2_001.fastq,MBR_3_S10_R2_001.fastq,MBR_5_S5_R2_001.fastq,MBR_6_S9_R2_001.fastq,MBR_8_S5_R2_001.fastq,MBR_S11_R2.fastq -o megahit_assembled_viral_contigs
 
 ### Velvet
 
@@ -324,25 +330,27 @@ sort a BAM file
 sort by readName
 
 	samtools sort -n SAMPLE.bam -o SAMPLE_sorted.bam
-
-	
 	samtools view -f 4 file.bam > unmapped.sam
 	samtools view -b -f 4 file.bam > unmapped.bam -@ 40 # get the unmapped reads using parameter f, to get the output in bam using parameter -b
 	samtools view -b -F 4 file.bam > mapped.bam -@ 40 # get the mapped reads using parameter F, which works like -v of grep, to get the output in bam using parameter -b
 
 ### [virsorter2](https://www.protocols.io/view/viral-sequence-identification-sop-with-virsorter2-bwm5pc86)
 
-#### Run VirSorter2
+Run VirSorter2
+
 	virsorter run --keep-original-seq -i 5seq.fa -w vs2-pass1 --include-groups dsDNAphage,NCLDV,RNA,ssDNA,lavidaviridae --min-length 5000 --min-score 0.5 -j 40 all
 
-#### Run checkV
+Run checkV
+
 	checkv end_to_end vs2-pass1/final-viral-combined.fa checkv -t 40 -d /data1/database/checkv-db-v1.0/
 
-#### Run VirSorter2 again
+Run VirSorter2 again
+
 	cat checkv/proviruses.fna checkv/viruses.fna > checkv/combined.fna 
 	virsorter run --seqname-suffix-off --viral-gene-enrich-off --provirus-off --prep-for-dramv -i checkv/combined.fna -w vs2-pass2 --include-groups dsDNAphage,NCLDV,RNA,ssDNA,lavidaviridae --min-length 5000 --min-score 0.5 -j 40 all
 
-#### Run DRAMv
+Run DRAMv
+
 	1. step 1 annotate
 	
 	DRAM-v.py annotate -i vs2-pass2/for-dramv/final-viral-combined-for-dramv.fa -v vs2-pass2/for-dramv/viral-affi-contigs-for-dramv.tab -o dramv-annotate --skip_trnascan --threads 28 --min_contig_size 1000
@@ -350,29 +358,36 @@ sort by readName
 	2. step 2 summarize anntotations
 
 	DRAM-v.py distill -i dramv-annotate/annotations.tsv -o dramv-distill
-	
-	
+
 
 ### concoct
 	velveth velveth_k71 71 -fasta -shortPaired -separate All_R1.fa All_R2.fa  
 	velvetg velveth_k71 -ins_length 400 -exp_cov auto -cov_cutoff auto  
-### picard
-to run jar file
 
+### picard
+	
+	to run jar file
 	java -jar MarkDuplicates.jar
+
 ### checkm
 	checkm lineage_wf -f CheckM.txt -t 8 -x fa bins_dir/ bins/CheckM
 
 # detect plasmid from WGS
-### PlasmidSeeker  
+
+PlasmidSeeker  
+
 	git clone https://github.com/bioinfo-ut/PlasmidSeeker/`
 	cd PlasmidSeeker/
 	bash plasmidseeker_ecoli_test.sh
-###help download db_w20 database
+	#help download db_w20 database
 	cat EC_1_results.txt
-### PlasmidSpades
+
+PlasmidSpades
+
 	plasmidspades.py -1 R1.fastq.gz -2 R2.fastq.gz -o assembly/ -t 50
-### Plasflow
+
+Plasflow
+
 	source activate plasflow
 	filter_sequences_by_length.pl -input input_dataset.fasta -output filtered_output.fasta -thresh sequence_length_threshold
 	PlasFlow.py --input Citrobacter_freundii_strain_CAV1321_scaffolds.fasta --output test.plasflow_predictions.tsv --threshold 0.7
@@ -540,14 +555,16 @@ tools
 
 	ClustalW
 	MUSCLE -> developed by Robert Edgar
+	mafft ->  Multiple alignment of a large number of short and highly similar sequences. Typical data size is up to ∼200,000 sequences × ∼5,000 sites (including gaps), but depends on similarity
 
-muscle/mafft alignment and export as fasta format
-	
+muscle/mafft alignment and export as *fasta* format
+
 	muscle -in seqs.fa -out seqs.afa
 	mafft --thread -40 --auto in > out
-	mafft --6merpair --thread -48 --keeplength --addfragments in.seq.fasta SARSCOV2.NC_045512.fasta > in.align.mafft.fasta
+	mafft --6merpair --thread -40 --keeplength --addfragments in.seq.fasta SARSCOV2.NC_045512.fasta > in.align.mafft.fasta
+	mafft --parttree --thread -40 in > out ## align up to 1.4 million sequences, check out this paper: Large multiple sequence alignments with a root-to-leaf regressive method
 
-muscle/mafft alignment and export to fasta as CLUSTALW format (more readable than FASTA)
+muscle/mafft alignment and export to fasta as *CLUSTALW* format (more readable than FASTA)
 
 	muscle -in seqs.fa -clw -out seqs.aln
 	mafft --thread -40 --clustalout seq.fasta > align.fa  #https://mafft.cbrc.jp/alignment/software/
