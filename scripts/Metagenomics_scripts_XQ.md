@@ -110,10 +110,12 @@ Untangle an interleaved PE FASTQ file.
 ### [bioawk](https://bioinformaticsworkbook.org/Appendix/Unix/bioawk-basics.html#gsc.tab=0)
 extract sequences based on headerID  
 		
+	seqtk subseq input.fasta id.txt > output.fasta
+
 	filterbyname.sh in=input.fa out=output.fa names=ID.txt include=t fixjunk overwrite=t
 	> include: t (include name) f (exclude name)
 
-	bioawk -c fastx 'BEGIN{while((getline k <"ID.txt")>0)i[k]=1}{if(i[$name])print ">"$name"\n"$seq}' ALL_Cluster_updatedV2.fasta > ID_sequence.fasta
+	bioawk -c fastx 'BEGIN{while((getline <"ID.txt")>0)i[k]=1}{if(i[$name])print ">"$name"\n"$seq}' input.fasta > ID_sequence.fasta
 
 get sequences length
 		
