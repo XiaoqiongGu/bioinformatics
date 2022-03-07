@@ -1,5 +1,5 @@
 @author: Xiaoqiong Gu
-@update time: 2021 Jan 12
+@update time: 2022 Mar
 
 ### commonly used headings
 
@@ -69,7 +69,7 @@ create a new column based on one column in the dataframe, apply lambda function
 	
 	df['days'] = df['subject'].apply(lambda x: int(x.split('D')[0]))
 	dfmm['aro_accession'] = dfmm['arg'].apply(lambda x: x.split('|')[2])
-
+	df['MajorAllele'] = df.apply(lambda x: x.ALT if x.SNP_frac >=0.5 else x.REF,axis=1) # note havec to put axis = 1
 
 apply certain functioin on series
 	
@@ -295,6 +295,14 @@ combine two dataframe by joint rows
 
 	pd.concat((df1,df2),axis='columns',sort=False)
 
+
+### numpy
+Returns the indices that would sort an array.
+	A.argsort()  # increasing order
+	(-A).argsort() # decreasing order
+
+rearange array according to the index order
+	A[idx]
 
 ### useful function
 

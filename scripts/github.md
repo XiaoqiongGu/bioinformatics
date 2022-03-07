@@ -18,7 +18,7 @@ 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
 # show modified files in working directory,staged for your next commit
 	git status
 
-# addd a file as it looks now to your next commit
+# add or update a file as it looks now to your next commit
 	git add .
 	git add -A  # Flags and parameters in git are case sensitive, and the -A flag can stage all my unstaged changes.
 
