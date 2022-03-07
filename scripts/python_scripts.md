@@ -298,10 +298,12 @@ combine two dataframe by joint rows
 
 ### numpy
 Returns the indices that would sort an array.
+	
 	A.argsort()  # increasing order
 	(-A).argsort() # decreasing order
 
 rearange array according to the index order
+	
 	A[idx]
 
 ### useful function

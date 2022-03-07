@@ -118,9 +118,9 @@ https://stackoverflow.com/questions/13710876/merge-multiple-files-by-common-fiel
 ### find and replace the text in specific line in files
 	sed -i '5s/old-text/new-text/' input.txt #do it in place, also specify it is in which line [now is 5 line]
 
-# sed
+# sed usage
 
-delete lines :
+delete lines
 
 	sed '7,9d' in > out 	# from lines 7 to 9
 	sed '2d' in > out 		# delete line 2
@@ -141,16 +141,15 @@ add prefix/suffix each line in a file
 	^ means beginning of the line, $ means end of the line
 	sed 's/^X$/d' file #delete all the x
 
-
-
-
 when trying to copy the data path, be careful to use '\' in front of '/' in order to let '/' have the meaning
 
 ### separate taxon file
 	echo '#Kingdom#Phylum#Class#Order#Family#Genus#Species' | tr '#' '\t' > taxonomy-table.tsv
 	cut -f 1-2 path-to-your-taxonomy-file.tsv | tr ';' '\t' | tail -n +2 >> taxonomy-table.tsv
 
-### select all rows except the first row
+### tail usage
+select all rows except the first row
+
 	tail -n+2 file.txt
 
 ### extract fastq sequences based on sequence ID (fastq)
@@ -218,53 +217,36 @@ $0 is the name of the script, $1 is the first argument
 	filterbyname.sh in=reads.fq out=filtered.fq names=names.txt #from bbmap
 	filterbyname.sh in=WPB073-TGCTACAT_S1_L006_R1_001.fastq.gz in2=WPB073-TGCTACAT_S1_L006_R2_001.fastq.gz out=WPB073-TGCTACAT_S1_R1.filtered.fastq out2=WPB073-TGCTACAT_S1_R2.filtered.fastq names=WPB073-TGCTACAT_S1_L006.kraken.id.filter
 
-bash programme run in 12/4/19
-	for x in *_R1_001.fastq.gz
-	do filterbyname.sh in=${x} in2=${x%R1_001.fastq.gz}R2_001.fastq.gz out=${x%_001.fastq.gz}.filtered.fastq out2=${x%R1_001.fastq.gz}R2.filter.fastq names=${x%_R1_001.fastq.gz}.kraken.id.filter
-	done
-
-# bowtie2 error message in 16/4/19
-	bowtie2-align died with signal 11 (SEGV)
-	reason: as i dont have exact files in the input folder
 
 # Linearizing the complete fasta file
 	while read line;do if [ "${line:0:1}" == ">" ]; then echo -e "\n"$line; else echo $line | tr -d '\n' ; fi; done < input.fasta > output.fasta #too slow
 	
 	sed -e 's/\(^>.*$\)/#\1#/' scaffolds.fasta | tr -d "\r" | tr -d "\n" | sed -e 's/$/#/' | tr "#" "\n" | sed -e '/^$/d'
 
-
-	
-bash programme run bbmap scripts in 25/4/19,#note: using single quote rather than double quote
-for x in *_1.fastq.gz
-do echo '#!/bin/bash' >> ${x%_1.fastq.gz}.sh  
-echo 'bbmap.sh in1='${x}' in2='${x%_1.fastq.gz}_2.fastq.gz 'path=/scratch/users/xiaoqiong/database/RVDB out='${x%_1.fastq.gz}.sam >> ${x%_1.fastq.gz}.sh
-done
-
-for x in 181221Alm*.sh
-do echo 'sbatch -p sched_mem1TB -c 40 -t 5-00:00:00 --mem=1000000 -J' $x' -o' ${x%.sh}.out' -e' ${x%.sh}.err ${x} >> all.sh
-done
-
+	bioawk -c fastx '{print ">"$name; print $seq}'   #useful link https://www.biostars.org/p/363676/
 
 # split usage
-split -d -b 200M -l 500 file.txt log
--b file sizes
--l line numbers
--d rename the splited file with log1, log2, log3, ...., logn
-split -l 1000
+	split -d -b 200M -l 500 file.txt log
+	-b file sizes
+	-l line numbers
+	-d rename the splited file with log1, log2, log3, ...., logn
+	split -l 1000
 
 # sum up specific column numbers
-awk '{sum+=$1;}END{print $1}' infile > outfile
+	awk '{sum+=$1;}END{print $1}' infile > outfile
+	
+	awk '{for (i=1;i<=NF;i++)$i=(a[i]+=$i)}END{print}' file
+	{for (i=1;i<=NF;i++)         Set field to 1 and increment through
+	$i=(a[i]+=$i)                Set the field to the sum + the value in field
+	END{print}                   Print the last line which now contains the sums
+	
+	tail -n+2 | awk '{for (i=1;i<=NF;i++)$i=(a[i]+=$i)}END{print}' kraken_table.txt|less
+	
+	numsum -c FILENAME [function]
+	-c   ---    Print out the sum of each column.
 
-awk '{for (i=1;i<=NF;i++)$i=(a[i]+=$i)}END{print}' file
-{for (i=1;i<=NF;i++)         Set field to 1 and increment through
-$i=(a[i]+=$i)                Set the field to the sum + the value in field
-END{print}                   Print the last line which now contains the sums
 
-tail -n+2 | awk '{for (i=1;i<=NF;i++)$i=(a[i]+=$i)}END{print}' kraken_table.txt|less
+1. [How to List all files in a directory and export result to a text file? ](https://stackoverflow.com/questions/14314947/how-to-list-all-files-in-a-directory-and-export-result-to-a-text-file)
+2. [Find a file matching with certain pattern and giving that file name as value to a variable in shell script?](https://unix.stackexchange.com/questions/361655/find-a-file-matching-with-certain-pattern-and-giving-that-file-name-as-value-to)
 
-numsum -c FILENAME [function]
--c   ---    Print out the sum of each column.
-
-# Find a file matching with certain pattern and giving that file name as value to a variable in shell script? https://unix.stackexchange.com/questions/361655/find-a-file-matching-with-certain-pattern-and-giving-that-file-name-as-value-to
-# How to List all files in a directory and export result to a text file?  https://stackoverflow.com/questions/14314947/how-to-list-all-files-in-a-directory-and-export-result-to-a-text-file
-find /data/meta_augmentin/meta_raw_data/combined -type f -iname "*_1.fq.gz" -printf '%p\n'|sort > test
+	`find /data/meta_augmentin/meta_raw_data/combined -type f -iname "*_1.fq.gz" -printf '%p\n'|sort > test`
