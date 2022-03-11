@@ -623,14 +623,25 @@ compare if two files are identical or different
 
 output
 
-	-O, --output-type b|u|z|v
+	-O, --output-type	b|u|z|v
 	Output compressed BCF (b), uncompressed BCF (u), compressed VCF (z), uncompressed VCF (v). Use the -Ou option when piping between bcftools subcommands to speed up performance by removing unnecessary compression/decompression and VCF←→BCF conversion.
 
-
 	
-bcftools mpileup to do genotpye likelyhood
+bcftools mpileup to do genotpye likelyhood, [format](https://en.wikipedia.org/wiki/Variant_Call_Format)
 
-	bcftools mpileup --threads 40 -a FMT/AD,FMT/ADF,FMT/ADR -Ou -d 8000 -A -f ref.fna f.sorted.bam| bcftools call -Ov -A -M -c --threads 40 > snp/f.raw.vcf;done 
+	bcftools mpileup --threads 40 -a FMT/AD,FMT/ADF,FMT/ADR -Ou -d 8000 -A -f ref.fna f.sorted.bam| bcftools call -Ov -A -M -c --threads 40 > snp/f.raw.vcf
+
+	AD: Read depth for each allele
+	ADF: Read depth for each allele on the forward strand
+	ADR: Read depth for each allele on the reverse strand
+	DP: Read depth
+	v: uncompressed VCF
+	u: uncompressed BCF
+	z: compressed VCF 
+	b: compressed BCF
+	-A, --keep-alts
+	-M, --keep-masked-ref, output sites where REF allele is N
+	-c, --consensus-caller the original samtools/bcftools calling method (conflicts with -m)
 
 merge different samples
 
@@ -641,7 +652,8 @@ reformat bcftools output to clean up the formats
 	bcftools view -i 'QUAL>=20' merged.ecoli.raw.vcf.gz|bcftools query -f '%CHROM\t%POS\t%REF\t%ALT\t[ %AD]\t%DP\t%QUAL\t%TYPE\n' -H -i 'TYPE="SNP"' > merged.ecoli.flt.snp.vcf
 
 
-
+## GNU parallel - master scripts
+	cat ids.txt | parallel echo spades.py --meta -1 {}_R1.fq.gz -2 {}_R2.fq.gz -t 45 -o {}
 
 ## Sources
 * <http://gettinggeneticsdone.blogspot.com/2013/10/useful-linux-oneliners-for-bioinformatics.html#comments>
