@@ -44,7 +44,7 @@ view all the column content
 	pd.merge(df1, df2, left_index=True, right_index=True, how='inner') 
 	pd.merge(df1, df2, left_on='df1_key', right_on='df2_key',how="outer")
 	how type: inner, outer, right, left
-
+	merge by two columns: left_on=['A1','A2'], right_on = ['B1','B2'])
 
 melt the df, wide to long format needed for seaborn plot in hue setting
 
@@ -66,7 +66,6 @@ pivot the melted dataframe, long to wide format
 create a new column based on one column in the dataframe, apply lambda function
 
 	df['new column name'] = df['column name'].apply(lambda x: 'value if condition is met' if x condition else 'value if condition is not met')
-	
 	df['days'] = df['subject'].apply(lambda x: int(x.split('D')[0]))
 	dfmm['aro_accession'] = dfmm['arg'].apply(lambda x: x.split('|')[2])
 	df['MajorAllele'] = df.apply(lambda x: x.ALT if x.SNP_frac >=0.5 else x.REF,axis=1) # note havec to put axis = 1
@@ -83,6 +82,17 @@ apply certain functioin on series
 
 	lamda function -> if the function is not too complicated  
 	df['email'].apply(lambda x: x.lower())
+
+create a new column based on two columns in the dataframe, apply lambda function
+
+	def f(x):    
+   		return x[0] + x[1] 
+    df.apply(f, axis=1) #passes a Series object, row-wise
+
+
+	def f(sta,end):
+    	return mylist[sta:end+1]
+	df['col_3'] = df.apply(lambda x: f(x.col_1, x.col_2), axis=1)
 
 apply on the dataframe
 	
@@ -137,10 +147,6 @@ Convert columns to string in Pandas
 
 	total_rows['ColumnID'] = total_rows['ColumnID'].astype(str)
 
-
-
-
-
 #### selecting columns
 
 select columns based on columns names containing a specific string in pandas
@@ -163,6 +169,14 @@ drop by name
 	df.drop(['B', 'C'], axis=1, inplace=True) # axis=1, column; axis=0, row
 	df.drop(columns=['B'], inplace=True) 
 
+drop duplicates
+	
+	df.drop_duplicates()
+
+select duplicates
+	
+	df.duplicates()
+	
 select single column
 
 	df['X'].head() -> return the tuple object
@@ -235,7 +249,7 @@ select columns containing partial string
 
 1. rename columns
 
-		df.rename(columns={'A':'A1'},inplace=True) #you can specify certain column names
+		df.rename({'A':'A1'},axis = columns, inplace=True) #you can specify certain column names
 2. use the list comprehension: to add a prefix or suffix to each column name, 
 		
 		df.columns = [str(col) + '_x' for col in df.columns]
@@ -439,6 +453,7 @@ my fav color palette
 
 ### matplotlib.pyplot
 	import matplotlib.pyplot as plt
+	plt.style.use('') # print(plt.style.available)
 	%matplotlib inline
 >	在使用jupyter notebook 的时候，经常会用到%matplotlib inline
 
@@ -501,7 +516,6 @@ heatmap plotting
 
 ### legend
 	plt.legend(fontsize=26,markerscale=2)
-	
 	plt.plot(faecaliqpcr_aad_normalized,color='#fb8072', linewidth=5,linestyle=':',label='$\it{Faecalibacterium}$ $\it{Prausnitzii}$-qPCR')
 	$\it{Faecalibacterium}$ $\it{Prausnitzii}$
 	
@@ -580,6 +594,15 @@ Y-axis ticks on right side of plot
 	add_stat_annotation(ax, data=subdf, x='Day', y='Abundance',line_height=0.01,hue='Group',order=day_order,box_pairs = box_pairs, test='Mann-Whitney', comparisons_correction='bonferroni' or 'None', text_format='star', loc='outside', verbose=2, fontsize=20)
 
 
+[Show decimal places and scientific notation on the axis of a matplotlib plot](https://stackoverflow.com/questions/25750170/show-decimal-places-and-scientific-notation-on-the-axis-of-a-matplotlib-plot)
+	import matplotlib.ticker as mticker
+	f = mticker.ScalarFormatter(useOffset=False, useMathText=True)
+	g = lambda x,pos : "${}$".format(f._formatSciNotation('%1.10e' % x))
+	ax1.get_yaxis().set_major_formatter(mticker.FuncFormatter(g))
+
+
+
+
 ### Hide non-significant annotations
 https://github.com/webermarcolivier/statannot/issues/50
 
@@ -609,6 +632,13 @@ choose different types
 	Wilcoxon signed-rank test is for the paried/matched samples
 	https://stats.stackexchange.com/questions/113936/what-is-the-difference-between-the-mann-whitney-and-wilcoxon-rank-sumtest
 
+[kstest](https://www.statology.org/kolmogorov-smirnov-test-python/)
+
+	from scipy.stats import kstest   # one sample
+	from scipy.stats import ks_2samp # two samples
+	pvalue = []
+		for i in range(df.shape[0]):
+    		pvalue.append(ks_2samp(df1.iloc[i, :], df2.iloc[i,:]).pvalue)
 
 
 multiple hypothesis test
@@ -621,6 +651,22 @@ multiple hypothesis test
 
 ### python regex
 https://www.programiz.com/python-programming/regex
+
+
+### datetime module
+convert datetime to date
+
+	datetime.datetime.now().date()
+
+
+[the inverse of datetime.isocalendar()](https://stackoverflow.com/questions/304256/whats-the-best-way-to-find-the-inverse-of-datetime-isocalendar)
+
+	Python 3.8 added the fromisocalendar() method:
+	>>> datetime.fromisocalendar(2011, 22, 1)
+	datetime.datetime(2011, 5, 30, 0, 0)
+	
+	>>> datetime.strptime('2011 22 1', '%G %V %u')
+	datetime.datetime(2011, 5, 30, 0, 0)
 
 
 

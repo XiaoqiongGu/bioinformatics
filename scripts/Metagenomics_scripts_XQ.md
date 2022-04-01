@@ -631,9 +631,12 @@ bcftools mpileup to do genotpye likelyhood, [format](https://en.wikipedia.org/wi
 
 	bcftools mpileup --threads 40 -a FMT/AD,FMT/ADF,FMT/ADR -Ou -d 8000 -A -f ref.fna f.sorted.bam| bcftools call -Ov -A -M -c --threads 40 > snp/f.raw.vcf
 
-	AD: Read depth for each allele
+	AD: Read depth for each allele -> AD may not always sum to DP
 	ADF: Read depth for each allele on the forward strand
 	ADR: Read depth for each allele on the reverse strand
+	AC: Total alternate allele count for all possible genotypes
+	AN: Total number of alleles in all possible genotypes
+	AF: allele frequency = AC/AN, If AF < 0.5, then AF is equal to MAF; rare variants generally has AF or MAF < 5 % (0.05)
 	DP: Read depth
 	v: uncompressed VCF
 	u: uncompressed BCF
@@ -650,6 +653,18 @@ merge different samples
 reformat bcftools output to clean up the formats
 
 	bcftools view -i 'QUAL>=20' merged.ecoli.raw.vcf.gz|bcftools query -f '%CHROM\t%POS\t%REF\t%ALT\t[ %AD]\t%DP\t%QUAL\t%TYPE\n' -H -i 'TYPE="SNP"' > merged.ecoli.flt.snp.vcf
+
+
+AD refers to the allele depth. AD reports the informative reads supporting each allele. .
+What does informative reads mean?
+
+DP
+Generally, markers are retained with DP > 10 or DP > 5 to get high-quality genotypes. This value can be changed based on research applications. For example, in clinical research higher DP is desirable for filtering.
+
+resources
+
+	https://www.reneshbedre.com/blog/vcf-fields.html#an-total-allele-count
+
 
 
 ## GNU parallel - master scripts

@@ -112,6 +112,15 @@ https://stackoverflow.com/questions/13710876/merge-multiple-files-by-common-fiel
 
 ### Extract fasta sequences based on sequence ID
 	!xargs samtools faidx final.contigs.fa < Id.txt > Id.contigs.fa
+
+### sort usage
+[sort by numerical values](https://stackoverflow.com/questions/4856030/how-to-sort-a-file-based-on-its-numerical-values-for-a-field)
+	
+	sort -u  # increasing order
+	sort -ur # decreasing order
+	sort -V, --version-sort natural sort of (version) numbers within text
+
+
 ### find and replace the text in files
 	sed -i 's/old-text/new-text/g' input.txt
 	in MacOS `sed -i '' 's/original/new/g' test.txt`

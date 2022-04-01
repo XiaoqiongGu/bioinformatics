@@ -41,3 +41,26 @@ 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
 
 # or if you wanted to move from a branch you created back to the master branch
 	git checkout master
+
+# Git 20190416
+任何类型文件进行版本控制  
+1. 本地版本控制系统  
+2. 集中化的版本控制系统  
+3. 分布式版本控制系统  
+
+## Git usage
+
+# 20190523
+1. make a new repo on the github website, can choose public and private repo
+2. follow instructions on the website,
+  echo "# underworldvirome" >> README.md
+  git init
+  git add README.md
+  git commit -m "first commit"
+  git remote add origin https://github.com/XiaoqiongGu/underworldvirome.git
+  git push -u origin master
+3. when files added in the folder
+  git add.
+  git commit
+  git push origin master
+  git status
