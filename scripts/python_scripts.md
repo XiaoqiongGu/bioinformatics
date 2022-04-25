@@ -1,5 +1,5 @@
 @author: Xiaoqiong Gu
-@update time: 2022 Mar
+@update time: 2022 Apr
 
 ### commonly used headings
 
@@ -379,10 +379,11 @@ iterate over many subplots
     	ax.bar(x, y[:,i], color=plt.cm.Paired(i/10.))
 	plt.show()
 
+	from matplotlib.ticker import PercentFormatter
 	for i,ax in enumerate(axes.flatten()):
     	ax.bar(x,y.iloc[i,:],color=colorcodes[i],width=0.5)
     	ax.set_ylabel(y.iloc[i,:].name.split(';')[-1])
-    	ax.yaxis.set_major_formatter(PercentFormatter(1,decimals=0))
+    	ax.yaxis.set_major_formatter(PercentFormatter(1,decimals=0)) 
 
 gridspec
 
@@ -489,6 +490,8 @@ barplot
 	fig, ax = plt.subplots()
 	rects1 = ax.bar(x - width/2, men_means, width, label='Men', color=colorcodes[i],yerr=error)
 	rects2 = ax.bar(x + width/2, women_means, width, label='Women')
+
+	df.plot.bar(stacked=True, linewidth=1, width=0.8,edgecolor='black',ax=ax)
 
 scatterplot
 
@@ -633,7 +636,8 @@ choose different types
 	https://stats.stackexchange.com/questions/113936/what-is-the-difference-between-the-mann-whitney-and-wilcoxon-rank-sumtest
 
 [kstest](https://www.statology.org/kolmogorov-smirnov-test-python/)
-
+	
+	The Kolmogorov-Smirnov test is used to test whether or not or not a sample comes from a certain distribution.
 	from scipy.stats import kstest   # one sample
 	from scipy.stats import ks_2samp # two samples
 	pvalue = []
@@ -641,7 +645,7 @@ choose different types
     		pvalue.append(ks_2samp(df1.iloc[i, :], df2.iloc[i,:]).pvalue)
 
 
-multiple hypothesis test
+[multiple hypothesis test](https://towardsdatascience.com/multiple-hypothesis-testing-correction-for-data-scientist-46d3a3d1611d)
 
 	from statsmodels.stats import multitest 
 	mw_stats_fdrbh=multitest.multipletests(mw_stats[0], alpha=0.05, method='fdr_bh', is_sorted=False, returnsorted=False)
@@ -678,11 +682,36 @@ secondary axis
 	ax2 = ax.twinx()
 	sns.barplot(data=pdd,x='pos_adj',y='fraction_break',color='g',ax=ax2)
 
-
-
 run bash scripts in python scripts and get the output of bash scripts
 
 	process = subprocess.Popen([ 'cat '+ sys.argv[1]+'|cut -f2|sort -u|wc -l'], shell=True, stdout=subprocess.PIPE)
 	ecoli_c0 = int(process.communicate()[0])
 	process.communicate() return stdout and stderr
 
+
+### if __name__=='main'
+	def main():
+		{scripts}
+	if __name__=='main':
+		main()
+
+	__name__ 是当前模块名，当模块被直接运行时模块名为 __main__ 。这句话的意思就是，当模块被直接运行时，以下代码块将被运行，当模块是被导入时，代码块不被运行。
+
+
+
+### color hex code
+color choice
+
+	blue: #A6BAE4, #A7BAE2
+	light blue: #DADFEB
+	dark blue: #D0D4E5
+	
+	green: #ADBD93, #A5B48B
+	Left green: #E8F0E7
+	Right Green: #E5EFF1,#8DA1A6
+	
+	orange: #f2c98a, #D9B47B, #DEB87F
+	red: #9A7484
+	Light gray: #E7E9E9
+	Dark green: #96AD9F, #789485
+	Gray: #6D6E71
