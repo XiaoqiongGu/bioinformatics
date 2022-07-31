@@ -71,6 +71,7 @@ nano .gitignore
 
 
 	git stash 
+
 	git stash temporarily shelves (or stashes) changes you've made to your working copy so you can work on something else, and then come back and re-apply them later on. Stashing is handy if you need to quickly switch context and work on something else, but you're mid-way through a code change and aren't quite ready to commit.
 
 	gitk 
@@ -91,6 +92,10 @@ nano .gitignore
 		git pull is widely used often
 
 where can you get more information?
+
+# git revert back
+
+[how do i revert a git repo to a previous commit](https://stackoverflow.com/questions/4114095/how-do-i-revert-a-git-repository-to-a-previous-commit)
 
 
 # Git 20190416

@@ -277,7 +277,7 @@ $0 is the name of the script, $1 is the first argument
 1. run 'git status' without typing so many letters
 2. alias rm='rm -i'
 
-### ls vs find 
+### ls vs find
 	folder_name
 	find . list all the things and recursive things in the folder
 
@@ -295,7 +295,7 @@ $0 is the name of the script, $1 is the first argument
 	man awk 
 	man sed 
 
-### sed 
+### sed
 	cat file.txt | sed 's/matcher/replacement/'
 	cat file.txt | sed 's/$/.txt/'
 
