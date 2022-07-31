@@ -215,6 +215,7 @@ add prefix in sequence header name
 ### CD-HIT-EST
 
 	cd-hit-est -i input.fasta -o output.fasta -c 0.95 -n 9 -T 0[use all threads] -M 58000[RAM<64GB]
+	cd-hit-est -i input.fasta -o output.fasta -c 0.95 -T 0
 
 # Taxonomy Annotation
 ## BLAST
@@ -253,7 +254,7 @@ make blast database
 
 blastn 
 
-	blastn -db BlastformattedDB -query -query file.fasta  -out file_VS_database.txt -outfmt "6 std slen qcovs" -evalue 1e-5 -perc_identity 50 -num_threads 30 -max_target_seqs 
+	blastn -db BlastformattedDB -query file.fasta  -out file_VS_database.txt -outfmt "6 std slen qcovs" -evalue 1e-5 -perc_identity 50 -num_threads 30 -max_target_seqs N
 
 	blastn -db ucleotide_fasta_protein_homolog_model -query combined_entero.fasta -out entero_vs_card.txt -outfmt "6 std scovs" -evalue 1e-5 -perc_identity 90 -num_threads 40 -max_target_seqs 1
 
@@ -263,7 +264,7 @@ megablast
 
 blastn very short primer
 
-	makeblastdb -in combined_entero.fasta -task blastn-short -dbtype 'nucl' -parse_seqids -out combined_entero -logfile blast.log.txt
+	makeblastdb -in combined_entero.fasta  -dbtype 'nucl' -parse_seqids -out combined_entero -logfile blast.log.txt ## -task blastn-short
 
 Wordsize:
 
@@ -273,9 +274,33 @@ Wordsize:
 
 https://www.ncbi.nlm.nih.gov/books/NBK279684/#appendices.Options_for_the_commandline_a
 
-blastn header
+blastn header -m8 file
 
 	blastn.columns = ['qseqid','sseqid','pident','length','mismatch','gapopen','qstart','qend','sstart','send','evalue','bitscore']
+
+blast output
+
+	-outfmt <String>
+   	alignment view options:
+     0 = Pairwise,
+     1 = Query-anchored showing identities,
+     2 = Query-anchored no identities,
+     3 = Flat query-anchored showing identities,
+     4 = Flat query-anchored no identities,
+     5 = BLAST XML,
+     6 = Tabular,
+     7 = Tabular with comment lines,
+     8 = Seqalign (Text ASN.1),
+     9 = Seqalign (Binary ASN.1),
+    10 = Comma-separated values,
+    11 = BLAST archive (ASN.1),
+    12 = Seqalign (JSON),
+    13 = Multiple-file BLAST JSON,
+    14 = Multiple-file BLAST XML2,
+    15 = Single-file BLAST JSON,
+    16 = Single-file BLAST XML2,
+    17 = Sequence Alignment/Map (SAM),
+    18 = Organism Report
 
 filter out 
 
@@ -399,10 +424,15 @@ Plasflow
 	bowtie2 -x database -1 R1.fasta.gz -2 R2.fasta.gz -S x.sam -p 40 --very-sensitive-local
 	samtools view -bS input.sam > output.bam -@ 40
 	samtools sort input.bam -o output.sorted.bam -@ 40
+
 	samtools index -b input_sorted.bam -@ 40 input_sorted.bam.bai
+
 	samtools idxstats *.input_sorted.bam > output.idxstats.txt
+
 	samtools depth input_sorted.bam > output.depth.txt  #to see the SNP coverage evolution etc. optional
+
 	python get_count_table.py *.idxstat.txt > count.txt #sum up all the output.idxstats.txt to the summary table
+	
 	python RPKM.py #R: absolute reads to 
 
 
@@ -666,9 +696,34 @@ resources
 	https://www.reneshbedre.com/blog/vcf-fields.html#an-total-allele-count
 
 
+### instrain pipeline
+
+	inStrain profile X.sam ref.fa -o sample.fa-vs-ref.IS -p 6 -g X.genes.fna -s X.maxbin2.stb
+
+	inStrain compare -i N5_271_010G1_scaffold_min1000.fa-vs-N5_271_010G1.IS/ N5_271_010G1_scaffold_min1000.fa-vs-N5_271_010G2.IS/ -s .N5_271_010G1.maxbin2.stb -p 6 -o N5_271_010G1_scaffold_min1000.fa.IS.COMPARE
+
+
+	parse_stb.py --reverse -f UHGG_reps/* -o UHGG.stb
+	for genome in $(ls *.fna); do echo prodigal -i $genome -o ../UHGG_genes/$genome.genes -a ../UHGG_genes/$genome.gene.faa -d ../UHGG_genes/$genome.gene.fna -m -p single; done | parallel -j 6
+
+	cat UHGG_genes/*.gene.fna > UHGG_reps.genes.fna
+
+	cat UHGG_genes/*.gene.faa > UHGG_reps.genes.faa
+
+
+	cat genomes-all_metadata.tsv | awk -F "\t" '{if ($17 == $1) print "curl ftp://ftp.ebi.ac.uk/pub/databases/metagenomics/mgnify_genomes/human-gut/v1.0/uhgg_catalogue/" substr($18,0,13) "/" $18 "/genome/" $18 ".fna -o UHGG_reps/" $1 ".fna"}' | bash
+
 
 ## GNU parallel - master scripts
 	cat ids.txt | parallel echo spades.py --meta -1 {}_R1.fq.gz -2 {}_R2.fq.gz -t 45 -o {}
+
+
+## pangenome analysis
+## roary plots
+
+	https://github.com/sanger-pathogens/Roary/blob/master/contrib/roary_plots/roary_plots.ipynb
+
+
 
 ## Sources
 * <http://gettinggeneticsdone.blogspot.com/2013/10/useful-linux-oneliners-for-bioinformatics.html#comments>

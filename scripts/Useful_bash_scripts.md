@@ -1,5 +1,5 @@
 # Useful bash scripts
-
+[bioinformatics bash one-liners](https://github.com/stephenturner/oneliners)
 ### talk between two systems
 	nc -l 3333 workstation1
 	nc $IP1 3333 workstation2
@@ -16,8 +16,9 @@
 ### to count the number of columns in files with different column number
 	awk '{print NF}' file.txt| sort -nu | tail -n 1 #NF is the built-in variable
 ### count the number of reads in fastq files
-	cat file|echo $((`wc -l`/4))
-	for x in *.fastq;do cat $x|echo $((`wc -l`/4));done
+	echo $(cat yourfile.fastq|wc -l)/4|bc  
+ 	echo $(zcat yourfile.fastq.gz|wc -l)/4|bc
+ 	echo $(( $(wc -l < $filename) / 4 )) 
 
 ### translate \n with comma in files
 	cat file.txt |tr '\n' ',' > file.txt
@@ -28,19 +29,18 @@
 	2: st
 ### how to tar zip files in multiple threads in linux
 	sudo apt install pigz
-	tar cvf -test.txt|pigz > test.tar.gz
+	tar -zcvf -test.txt|pigz > test.tar.gz
 ### how to tar zip files
-	nohup tar -czvf trimmed.adapter.tar.gz adapter&
+	nohup tar -zcfv trimmed.adapter.tar.gz adapter&
 ### how to unzip tar.gz files
-	tar -xvzf bigfile.tar.gz -C /folder/subfolder/
+	tar -zxfv bigfile.tar.gz -C /folder/subfolder/
+	z zipped file
 	x extract
 	c create
-	v verbose
-	z zipped file
 	f use the following tar archive for the operation
+	v verbose
 	-C to extract the files into a specified directory
 	
-
 ### show the size of hard disk usage of all the directory
 	df -h
 ### show all the sub-directory hard disk size and also the total size
@@ -150,6 +150,11 @@ add prefix/suffix each line in a file
 	^ means beginning of the line, $ means end of the line
 	sed 's/^X$/d' file #delete all the x
 
+add file name to every sequence header
+	
+	for f in *.fna; do sed -i "" "s/^>/>${f%.*}_/" "$f"; done
+	## note in the mac system, need to add ""-> https://blog.csdn.net/stpeace/article/details/106110704
+
 when trying to copy the data path, be careful to use '\' in front of '/' in order to let '/' have the meaning
 
 ### separate taxon file
@@ -192,6 +197,7 @@ sum certain numbers in a column using awk. I would like to sum just column 3 of 
 	awk -F":" 'NR==1,NR==10 {print $1}' file.txt #print the first column, between row 1 to row 10 based on ":" delimiter, NR is the built in variables
 
 	awk '$4 > 9' #grep the fourth column which more than 9
+	awk '$1==$7 && $6==$12' file #two conditions
 	awk 'NR%2==0' file > outfile #grep even lines from a txt file
 	
 	FS: Input field separator variable
@@ -241,7 +247,7 @@ $0 is the name of the script, $1 is the first argument
 	-d rename the splited file with log1, log2, log3, ...., logn
 	split -l 1000
 
-# sum up specific column numbers
+## sum up specific column numbers
 	awk '{sum+=$1;}END{print $1}' infile > outfile
 	
 	awk '{for (i=1;i<=NF;i++)$i=(a[i]+=$i)}END{print}' file
@@ -256,6 +262,69 @@ $0 is the name of the script, $1 is the first argument
 
 
 1. [How to List all files in a directory and export result to a text file? ](https://stackoverflow.com/questions/14314947/how-to-list-all-files-in-a-directory-and-export-result-to-a-text-file)
+
 2. [Find a file matching with certain pattern and giving that file name as value to a variable in shell script?](https://unix.stackexchange.com/questions/361655/find-a-file-matching-with-certain-pattern-and-giving-that-file-name-as-value-to)
 
 	`find /data/meta_augmentin/meta_raw_data/combined -type f -iname "*_1.fq.gz" -printf '%p\n'|sort > test`
+
+
+
+### the difference between bash and python
+	bash shell for small stuffs vs python
+	you can either run bash inside python or run python inside bash 
+
+### alias usage
+1. run 'git status' without typing so many letters
+2. alias rm='rm -i'
+
+### ls vs find 
+	folder_name
+	find . list all the things and recursive things in the folder
+
+### xargs
+	cat file.txt|xargs mkdir
+	cat file.txt|xargs touch
+	find | xargs echo
+
+### grep
+	grep "" --color -n test.txt
+	grep "\\$" test.txt #regular experssion  
+	ls -lah | grep -v "Jul 28"
+
+### man usage
+	man awk 
+	man sed 
+
+### sed 
+	cat file.txt | sed 's/matcher/replacement/'
+	cat file.txt | sed 's/$/.txt/'
+
+### write a function
+	$1: means the first argument
+	$@: means all the argument
+	Use mcd to create a directory and cd to it simultaneously:
+	function mcd(){
+		mkdir "$1"
+		cd "$1"
+	}
+
+	function printme() {echo hi}
+
+	function printme(){
+	file=$1
+	echo hi the length of $file is:
+	wc -l $file
+	}
+
+	function rm(){
+		/bin/rm $@
+	}
+
+	unset printme
+
+
+### chmod
+	chmod u+x file.txt
+
+### echo
+	echo -n -> 不会产生新的一行

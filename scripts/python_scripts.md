@@ -153,7 +153,7 @@ select columns based on columns names containing a specific string in pandas
 
 	df.loc[:, df.columns.str.startswith('alp')]
 	df.filter(like='keyword').head
-	df.filter(regrex='keyword').head
+	df.filter(regex='keyword').head
 
 select multiple columns based on the columns string that contain keyword D0
 
@@ -335,9 +335,8 @@ Get value counts for multiple columns at once in Pandas DataFrame
 
 
 ### [regular expression usage]('https://www.regular-expressions.info/index.html')
-
-	
-
+	xx = ''
+	r1 = re.findall(r'VL\w*$',xx)
 
 
 
@@ -346,16 +345,13 @@ http://qiime.org/scripts/compare_categories.html
 
 
 
-
-
-
-
 ## Seaborn and matplotlib
 
 	import seaborn as sns; sns.set()
 	import matplotlib.pyplot as plt
 	sns.set_style(style="white")
-
+	sns.set(font_scale=2)
+	
 set the figure size
 
 	fig, ax = plt.subplots(figsize=fig_dims)
@@ -400,6 +396,9 @@ gridspec
 
 
 ## color palette
+
+	colorbrew2
+	 
 extract RGB or 6 digit code from seaborn palette
 
 	print(sns.color_palette('Set3').as_hex())
@@ -447,6 +446,10 @@ my fav color palette
 
 		'#383838'
 
+* *stacked bar plots with many species*
+
+		colorcodes = ['#EF926C','#7CC4A7','#90A4CA','#DA90C4','#B2DB68','#6363A7','#E2C799','#84CBEB','#DF6C67','#878428','#F9E053','#6C3C17','#C6C6C6','#848484']
+
 ## log scale in scatter plot
 	plt.xscale('log')
 	plt.yscale('log')
@@ -462,6 +465,12 @@ my fav color palette
 	注意的地方
 	但有一个不太方便的地方，当你调用fig1 = plt.figure(1); 如果再次调用plt.figure(1)的时候会产生新的Figure实例对象，而且每次plt.gca()或者plt.gcf()都会产生不同的对象。
 	如果不加上%maplotlib inline 的话，每次figure的显示都需要plt.show();
+
+histogram plot
+
+	(n, bins, patches) = plt.hist(x, bins=45, label='hst')
+
+
 
 swarmplot
 	
@@ -480,7 +489,9 @@ areaplot
 	df.plot(kind='area',figsize=(5,5),linewidth=0,colormap='Set3',ax=ax_loc)
 
 barplot
-	
+
+option 1	
+
 	https://matplotlib.org/3.1.1/gallery/lines_bars_and_markers/barchart.html#sphx-glr-gallery-lines-bars-and-markers-barchart-py
 	grouped bar plot
 
@@ -491,7 +502,19 @@ barplot
 	rects1 = ax.bar(x - width/2, men_means, width, label='Men', color=colorcodes[i],yerr=error)
 	rects2 = ax.bar(x + width/2, women_means, width, label='Women')
 
+option 2
+
 	df.plot.bar(stacked=True, linewidth=1, width=0.8,edgecolor='black',ax=ax)
+
+	# insert labels above every columns
+	rects = ax.patches
+	# Make some labels.
+	labels = ['4033','227','240','266','278','2726','421','412','283','314','387']
+	for rect, label in zip(rects, labels):
+    	#height = rect.get_height()
+    	ax.text(rect.get_x()+rect.get_width()/2, 1.05,label, ha="center", va="bottom") # this is assuming it is the stacked bar plots when the heights are fixed, otherwise can use height variable
+
+
 
 scatterplot
 
@@ -517,6 +540,15 @@ heatmap plotting
 	uniform_data = np.random.rand(10, 12)
 	ax = sns.heatmap(uniform_data)
 
+### rc parameters
+
+	font = {'family': 'arial',
+        'weight': 'light',
+        'size': 16}
+	plt.rc('font', **font)
+	plt.rcParams["axes.edgecolor"] = "black"
+	plt.rcParams["axes.linewidth"] = 1.8   ## setting the frame width
+
 ### legend
 	plt.legend(fontsize=26,markerscale=2)
 	plt.plot(faecaliqpcr_aad_normalized,color='#fb8072', linewidth=5,linestyle=':',label='$\it{Faecalibacterium}$ $\it{Prausnitzii}$-qPCR')
@@ -534,7 +566,7 @@ handels and labels for seaborn: https://stackoverflow.com/questions/51579215/rem
 	handles, labels = ax.get_legend_handles_labels()
 	ax.legend(handles=handles[1:], labels=labels[1:])
 
-handels location
+[handels location/legend location](https://stackoverflow.com/questions/44413020/how-to-specify-legend-position-in-matplotlib-in-graph-coordinates)
 
 	handles, labels = ax[0].get_legend_handles_labels()
 	fig.legend(handles, labels, bbox_to_anchor=(0.4,0),loc='center')
@@ -550,6 +582,10 @@ plot x horizontal line
 plot y horizontal line
 
 	plt.ayhline(y=N, color='r', linestyle='--')
+
+plt tick rotation
+
+	plt.xticks(rotation = 90)
 
 ### ax parameter setting
 change x ticklabel
@@ -603,9 +639,6 @@ Y-axis ticks on right side of plot
 	g = lambda x,pos : "${}$".format(f._formatSciNotation('%1.10e' % x))
 	ax1.get_yaxis().set_major_formatter(mticker.FuncFormatter(g))
 
-
-
-
 ### Hide non-significant annotations
 https://github.com/webermarcolivier/statannot/issues/50
 
@@ -644,6 +677,10 @@ choose different types
 		for i in range(df.shape[0]):
     		pvalue.append(ks_2samp(df1.iloc[i, :], df2.iloc[i,:]).pvalue)
 
+[Binomial distribution](https://www.statology.org/binomial-test-python/)
+	
+	stats.binom_test(samp_x, n=samp_n,p=hypo_p, alternative='less')
+
 
 [multiple hypothesis test](https://towardsdatascience.com/multiple-hypothesis-testing-correction-for-data-scientist-46d3a3d1611d)
 
@@ -655,6 +692,15 @@ choose different types
 
 ### python regex
 https://www.programiz.com/python-programming/regex
+
+### python 3
+	string formatting
+	name ='giacomo'
+	number = 4.3
+	print('%s %s %d %f %g' % (name, number, number, number, number))
+
+
+
 
 
 ### datetime module
