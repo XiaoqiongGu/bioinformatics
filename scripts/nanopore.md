@@ -32,7 +32,11 @@
 
 ### blast your forward and reverse primer to your database (your sample)
 
-    blastn -db blast/TEM -query primer.fasta -task blastn-short  -outfmt "6 std qlen slen qcovs" -max_target_seqs 10000000 -perc_identity 80 -num_threads 10 -out blast/primer_vs_txt 
+    blastn -db blast/TEM -query primer.fasta -task blastn-short  -outfmt "6 std qlen slen qcovs" -max_target_seqs 10000000 -perc_identity 80 -num_threads 10 -out blast/primer_vs_database.txt 
+
+### extract fasta ids containing both forward and reverse ids.
+
+    python blastn_id_merge.py primer_vs_database.txt extracted.id.txt
 
 ### get the fasta containing all the ARGs
 #### option1
