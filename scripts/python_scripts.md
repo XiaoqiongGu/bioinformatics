@@ -7,6 +7,8 @@
 	import numpy as np
 	import pandas as pd
 	import seaborn as sns;sns.set(color_codes=True)
+	sns.set_style(style="white")
+	sns.set(font_scale=2)
 	import matplotlib.pyplot as plt
 	from scipy import stats
 	from scipy.stats import zscore
@@ -453,6 +455,9 @@ my fav color palette
 ## log scale in scatter plot
 	plt.xscale('log')
 	plt.yscale('log')
+	ax.set_yscale('log')
+
+
 	
 
 ### matplotlib.pyplot
@@ -483,6 +488,10 @@ boxplot
 lineplot
 
 	sns.lineplot(data=otu97_rel_p_AAD_avg.T, ax=ax0,linewidth=3)
+
+	fig, axes = plt.subplots(5,6,figsize=(20,20),sharex=True)
+	for i, ax in enumerate(axes.flatten()):
+		ax.plot(df.transpose().iloc[:,i],marker='o') # marker o is very important
 
 areaplot
 
@@ -519,6 +528,9 @@ option 2
 scatterplot
 
 	sns.scatterplot(data=metadata,x='total_number_of_episodes',y='maximum_BS',hue='Group',s=size,palette=[ '#377eb8','#e41a1c'])
+	sns.scatterplot(data=df, x=[i for i in range(27)], y='ratio_snps2shared')
+	for i in range(df.shape[0]):
+    	plt.text(x=i, y=df.ratio_snps2shared[i]+0.003, s=df.subject[i],fontdict=dict(color='black',size=12))
 
 clusterplot
 	
@@ -586,6 +598,7 @@ plot y horizontal line
 plt tick rotation
 
 	plt.xticks(rotation = 90)
+	ax.set_xticklabels(ax.get_xticks(),rotation = 90)
 
 ### ax parameter setting
 change x ticklabel

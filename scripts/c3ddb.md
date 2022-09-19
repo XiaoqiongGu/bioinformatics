@@ -18,6 +18,10 @@ transfer_mac2c3ddb.sh:
 	#!/bin/bash
 	scp -i ~/c3ddb-cluster/linux/c3ddb-key $1 c3ddb01.mit.edu:$2
 
+
+    rsync -av --progress xiaoqiong@c3ddb-globus.mit.edu:/home/xiaoqiong/xiaoqiong-ost22-files.txt ./c3ddb_demo -e 'ssh -i /data1/scripts/c3ddb/linux/c3ddb-key'
+
+
 ## set up in mac bash_profile
 
 set tools/script folder in the bash\_profile and type below codes in the ~/.bash_profile
