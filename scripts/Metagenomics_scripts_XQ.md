@@ -117,6 +117,9 @@ extract sequences based on headerID
 
 	bioawk -c fastx 'BEGIN{while((getline <"ID.txt")>0)i[k]=1}{if(i[$name])print ">"$name"\n"$seq}' input.fasta > ID_sequence.fasta
 
+extract sequences from virsorter ids
+
+	cat virsorterid.txt | xargs -n 1 samtools faidx all.faa
 get sequences length
 		
 	bioawk -c fastx '{print $name,length($seq)}' input.fa
@@ -241,6 +244,10 @@ NCBInr blast database
 	ls nr.*.gz |xargs -n1 tar -xzvf
 	rm nr.*.gz
 
+	for i in nt.*.tar.gz; do parallel -j 75 tar -xzvf ${i}; done
+
+	parallel -j 同时运行数量 tar -xzvf 需要解压文件的路径/{} ::: `ls 需要解压文件的路径`
+
 Diamond fasta database
 
 	wget 'ftp://ftp.ncbi.nlm.nih.gov/blast/db/fasta/nt.gz'
@@ -343,7 +350,7 @@ _remember to run bowtie2 to get depth.txt_  this bowtie2 script is for binning q
 ### samtools
 convert a SAM file to a BAM file
 
-	samtools view -b -S SAMPLE.sam > SAMPLE.bam
+	samtools view -bS SAMPLE.sam > SAMPLE.bam
 
 convert a BAM file to a SAM file
 
@@ -385,6 +392,32 @@ Run DRAMv
 
 	DRAM-v.py distill -i dramv-annotate/annotations.tsv -o dramv-distill
 
+### VirFinder
+install
+
+	install.packages("glmnet", dependencies=TRUE)
+	install.packages("Rcpp", dependencies=TRUE)
+	source("https://bioconductor.org/biocLite.R")
+	biocLite("qvalue")
+	install.packages("~/tools/VirFinder/linux/VirFinder_1.1.tar.gz", repos = NULL, type="source")  
+	library(VirFinder)
+
+To quick start, one can predict the viral contigs using the command
+
+	predResult <- VF.pred("contigs.fa")
+
+sort sequences by p-value in ascending order
+
+	predResult[order(predResult$pvalue),]
+
+estimate q-values (false discovery rates) based on p-values
+
+	predResult$qvalue <- VF.qvalue(predResult$pvalue)
+
+sort sequences by q-value in ascending order
+
+	predResult[order(predResult$qvalue),]
+
 
 ### concoct
 	velveth velveth_k71 71 -fasta -shortPaired -separate All_R1.fa All_R2.fa  
@@ -398,7 +431,7 @@ Run DRAMv
 ### checkm
 	checkm lineage_wf -f CheckM.txt -t 8 -x fa bins_dir/ bins/CheckM
 
-# detect plasmid from WGS
+## detect plasmid from WGS
 
 PlasmidSeeker  
 
@@ -445,42 +478,50 @@ Plasflow
 # unassembled viral contigs
 Viral contigs with unassembled overlaps or from the same scaffold were merged using the SeqMan program implemented in the Lasergene software package v7.1 (DNAstar)  
 Integrated genomics viewer
-# VirFinder
-	install.packages("glmnet", dependencies=TRUE)
-	install.packages("Rcpp", dependencies=TRUE)
-	source("https://bioconductor.org/biocLite.R")
-	biocLite("qvalue")
-	install.packages("~/tools/VirFinder/linux/VirFinder_1.1.tar.gz", repos = NULL, type="source")  
-	library(VirFinder)
-### To quick start, one can predict the viral contigs using the command,
-	predResult <- VF.pred("contigs.fa")
-#### (2.1) sort sequences by p-value in ascending order
-	predResult[order(predResult$pvalue),]
-#### (2.2) estimate q-values (false discovery rates) based on p-values
-	predResult$qvalue <- VF.qvalue(predResult$pvalue)
-#### (2.3) sort sequences by q-value in ascending order
-	predResult[order(predResult$qvalue),]
 
-# Virsorter&VirFinder filter
-## better to extract seq from virsorter ids
-### extract sequences from virsorter ids
-	cat virsorterid.txt | xargs -n 1 samtools faidx all.faa
+
 # getting the mapping coverage
-# https://bedtools.readthedocs.io/en/stable/content/tools/genomecov.html
+## [bedtools](https://bedtools.readthedocs.io/en/stable/content/tools/genomecov.html)
 	bedtools genomecov -ibam input.bam -g output.genome
 	samtools depth	-d 0 aln.sorted.bam # set the depth to the maximum, otherwise maximum coverage depth is 8000
 	bedtools bamtobed -i *.bam > *.bed # work for caobo's datasets
 	samtools bedcov aln.sorted.bam #did not work
-	bbmap - does not work
+
+## bam2readcount
+
+1. install conda => https://docs.conda.io/en/latest/
+2. set up an environment and install bam-readcount using conda in this environment => https://anaconda.org/bioconda/bam-readcount
+3. download brc-parser.py, git clone https://github.com/sridhar0605/brc-parser => https://github.com/sridhar0605/brc-parser
+
+example
+
+	bam-readcount -f ref.fa some.bam chrID > some.txt
+	-d  --max-count
+	-w 1 maximum number of warnings of each type to emit. -1 gives an unlimited number.
+
+add chrID
+
+	RlmH4_FKDL220004689-1a_1_trimmed_cutadapt_bowtie2_unique_header_filter.bam Escherichia_coli_BW25113_K-12_substr_BW25113_tRNA-Leu-TAG-1-1  > RlmH4.txt
+
+	python ../tools/brc-parser/brc-parser.py RlmH4.txt 
+
+to make a for loop in the current folder which contains the bam file:
+
+	for x in *.bam
+	do 
+		bam-readcount -w 1 -d 10000000 -f E.coli_BW25113_tRNA_reference.renamed.fasta ${x} Escherichia_coli_BW25113_K-12_substr_BW25113_tRNA-Leu-TAG-1-1 
+		python ../tools/brc-parser/brc-parser.py ${x%.bam}.txt
+	done
+
 ## vCONTACT2
-# install vcontact2 using website: https://bitbucket.org/MAVERICLab/vcontact2/src/master/
-# already install on c3ddb node, conda activate vContact2
-# run on 20/May/2019
+### [installation](https://bitbucket.org/MAVERICLab/vcontact2/src/master/)
+### installed on c3ddb node, conda activate vContact2, run on 20/May/2019
 	vcontact --raw-proteins P1_1.faa --rel-mode ‘Diamond’ --proteins-fp P1.gene2genome.mappingfile.csv --db 'ProkaryoticViralRefSeq85-Merged' --pcs-mode MCL --vcs-mode ClusterONE --c1-bin /scratch/users/xiaoqiong/anaconda3/envs/vContact2/bin --output-dir VirSorted_Outputs
-# getting the mapping quality adapted from bolduc script: Read2ReferenceMapper.py
+### getting the mapping quality adapted from bolduc script: Read2ReferenceMapper.py
 	bamm filter -b {} --percentage_id {} --percentage_aln {} -o {}
-# in the GOV2.0 paper
-BamM (https://github.com/ecogenomics/BamM) was used to remove reads that mapped at < 95% nucleotide identity to the contigs, bedtools genomecov (Quinlan and Hall, 2010) was used to determine how many positions across each genome were covered by reads, and custom Perl scripts were used to further filter out contigs without enough coverage across the length of the contig.
+### in the GOV2.0 paper
+
+	BamM (https://github.com/ecogenomics/BamM) was used to remove reads that mapped at < 95% nucleotide identity to the contigs, bedtools genomecov (Quinlan and Hall, 2010) was used to determine how many positions across each genome were covered by reads, and custom Perl scripts were used to further filter out contigs without enough coverage across the length of the contig.
 		usage: bamm filter -b BAMFILE [-o OUT_FOLDER]
 		                   [--mapping_quality MAPPING_QUALITY]
 		                   [--max_distance MAX_DISTANCE] [--length LENGTH]
@@ -507,53 +548,66 @@ BamM (https://github.com/ecogenomics/BamM) was used to remove reads that mapped 
 		  --use_supplementary   use reads marked with the supplementary flag
 		  -v, --invert_match    select unmapped reads
 		  -h, --help            show this help message and exit
-/scratch/users/xiaoqiong/tools/MAVERICLab-vcontact2-0eca9dac02f7/vcontact/data/
-/scratch/users/xiaoqiong/anaconda3/envs/vContact2/lib/python3.7/site-packages/vcontact/data/ViralRefSeq-prokaryotes-v85.faa.gz
-'data/ViralRefSeq-prokaryotes-v88.protein2contig.csv'
-'data/ViralRefSeq-prokaryotes-v88.Merged-reference.csv'
-'data/ViralRefSeq-prokaryotes-v85.faa.gz',
-'data/ViralRefSeq-prokaryotes-v85.protein2contig.csv',
-'data/ViralRefSeq-prokaryotes-v85.ICTV-reference.csv',
-'data/ViralRefSeq-prokaryotes-v85.Merged-reference.csv',
-'data/ViralRefSeq-archaea-v85.faa.gz',
-'data/ViralRefSeq-archaea-v85.protein2contig.csv',
-'data/ViralRefSeq-archaea-v85.Merged-reference.csv'
-### virsorter 20190523 in c3ddb, https://github.com/simroux/VirSorter
-source activate virsorter
-wrapper_phage_contigs_sorter_iPlant.pl -f contigs.500bp.fasta --db 1 --wdir virsorter_output --ncpu 4 --data-dir scratch/users/xiaoqiong/tools/VirSorter/virsorter-data
-wrapper_phage_contigs_sorter_iPlant.pl -f scaffolds.fasta --db 1 --wdir virsorter_output --ncpu 20 --data-dir /scratch/tools/virsorter-data
-wrapper_phage_contigs_sorter_iPlant.pl -f scaffolds.fasta --db 1 --wdir virsorter_output --ncpu 20 --data-dir /scratch/users/xiaoqiong/tools/VirSorter/virsorter-data
-### virsorter 20190618 in c3ddb
-wrapper_phage_contigs_sorter_iPlant.pl -f combined.assembly.virsorter.fa --db 1 --wdir virsorter_output  --data-dir scratch/users/xiaoqiong/tools/VirSorter/virsorter-data
+
+	/scratch/users/xiaoqiong/tools/MAVERICLab-vcontact2-0eca9dac02f7/vcontact/data/
+	/scratch/users/xiaoqiong/anaconda3/envs/vContact2/lib/python3.7/site-packages/vcontact/data/ViralRefSeq-prokaryotes-v85.faa.gz
+	'data/ViralRefSeq-prokaryotes-v88.protein2contig.csv'
+	'data/ViralRefSeq-prokaryotes-v88.Merged-reference.csv'
+	'data/ViralRefSeq-prokaryotes-v85.faa.gz',
+	'data/ViralRefSeq-prokaryotes-v85.protein2contig.csv',
+	'data/ViralRefSeq-prokaryotes-v85.ICTV-reference.csv',
+	'data/ViralRefSeq-prokaryotes-v85.Merged-reference.csv',
+	'data/ViralRefSeq-archaea-v85.faa.gz',
+	'data/ViralRefSeq-archaea-v85.protein2contig.csv',
+	'data/ViralRefSeq-archaea-v85.Merged-reference.csv'
+
+virsorter 20190523 in c3ddb, https://github.com/simroux/VirSorter
+
+	source activate virsorter
+	wrapper_phage_contigs_sorter_iPlant.pl -f contigs.500bp.fasta --db 1 --wdir virsorter_output --ncpu 4 --data-dir scratch/users/xiaoqiong/tools/VirSorter/virsorter-data
+	wrapper_phage_contigs_sorter_iPlant.pl -f scaffolds.fasta --db 1 --wdir virsorter_output --ncpu 20 --data-dir /scratch/tools/virsorter-data
+	wrapper_phage_contigs_sorter_iPlant.pl -f scaffolds.fasta --db 1 --wdir virsorter_output --ncpu 20 --data-dir /scratch/users/xiaoqiong/tools/VirSorter/virsorter-data
+virsorter 20190618 in c3ddb
+
+	wrapper_phage_contigs_sorter_iPlant.pl -f combined.assembly.virsorter.fa --db 1 --wdir virsorter_output  --data-dir scratch/users/xiaoqiong/tools/VirSorter/virsorter-data
 working directory
-cd /scratch/users/xiaoqiong/shingiek/kraken2_phages/filter_spades
-#!/bin/bash
-for x in *.fasta/
-do wrapper_phage_contigs_sorter_iPlant.pl -f ${x}contigs.500bp.fasta --db 1 --wdir ${x}virsorter_output --ncpu 40 --data-dir /scratch/users/xiaoqiong/tools/VirSorter/virsorter-data
-done
-can I use reference-based assembly?
-which tools to use? for phages?
-pseudomnas phage - 45.1 kb
+
+	cd /scratch/users/xiaoqiong/shingiek/kraken2_phages/filter_spades
+	#!/bin/bash
+	for x in *.fasta/
+	do wrapper_phage_contigs_sorter_iPlant.pl -f ${x}contigs.500bp.fasta --db 1 --wdir ${x}virsorter_output --ncpu 40 --data-dir /scratch/users/xiaoqiong/tools/VirSorter/virsorter-data
+	done
+	can I use reference-based assembly?
+	which tools to use? for phages?
+	pseudomnas phage - 45.1 kb
 ### rnavirome 20190523
-samtools depth sorted.Bam > file.coverage
-bedtools genomecov
-how to visualize the samtools depth file
-need to check the RVDB database - if the virus genome is complete? or not?
-# bedtools genomecov, https://bedtools.readthedocs.io/en/latest/content/tools/genomecov.html
-By default, bedtools genomecov will compute a histogram of coverage for the genome file provided. The default output format is as follows:
-chromosome (or entire genome)
-depth of coverage from features in input file
-number of bases on chromosome (or genome) with depth equal to column 2.
-size of chromosome (or entire genome) in base pairs
-fraction of bases on chromosome (or entire genome) with depth equal to column 2.
-download the pseudomnas phage TL and map all the reads to the reference
-!!!be remember that all the bowtie2 input files should be in the exact correct reachable location!!!
-# How to plot coverage and depth statistics of a bam file https://www.biostars.org/p/104063/
-## To select the coverage for a particular chromosome (Chr#1 in my case)
+
+	samtools depth sorted.Bam > file.coverage
+	bedtools genomecov
+	how to visualize the samtools depth file
+	need to check the RVDB database - if the virus genome is complete? or not?
+### [bedtools genomecov](https://bedtools.readthedocs.io/en/latest/content/tools/genomecov.html)
+
+	By default, bedtools genomecov will compute a histogram of coverage for the genome file provided. The default output format is as follows:
+	chromosome (or entire genome)
+	depth of coverage from features in input file
+	number of bases on chromosome (or genome) with depth equal to column 2.
+	size of chromosome (or entire genome) in base pairs
+	fraction of bases on chromosome (or entire genome) with depth equal to column 2.
+	download the pseudomnas phage TL and map all the reads to the reference
+	!!!be remember that all the bowtie2 input files should be in the exact correct reachable location!!!
+### [How to plot coverage and depth statistics of a bam file](https://www.biostars.org/p/104063/)
+
+To select the coverage for a particular chromosome (Chr#1 in my case)
+
 	awk '$1 == 1 {print $0}' deduped_MA605.coverage > chr1_MA605.coverage
-## To select coverage from chr #2
+
+To select coverage from chr #2
+
 	awk '$1 == 2 {print $0}' deduped_MA605.coverage > chr2_MA605.coverage
-## To plot the data in R this coverage file will need to be imported and the headers need to be added
+
+To plot the data in R this coverage file will need to be imported and the headers need to be added
+
 	awk '$1 == "acc|GENBANK|LS992247.1|Human" {print $0}' 10.txt > 10_top1.txt
 
 ### 20190701 crass, http://ctskennerton.github.io/crass/Tutorial.html, https://github.com/ctSkennerton/crisprtools
@@ -617,14 +671,6 @@ count the number of sequences
 	so if I used a kmer of 37 and an average read length of 50
 	Cx=202*50/(50-37+1)=721X
 
-## [How to redirect output to a file and stdout](https://stackoverflow.com/questions/418896/how-to-redirect-output-to-a-file-and-stdout)
-	program [arguments...] 2>&1 | tee -a outfile
-	2>&1 dumps the stderr and stdout streams. tee outfile takes the stream it gets and writes it to the screen and to the file "outfile".
-	
-# [Redirect to log file](https://stackoverflow.com/questions/818255/in-the-shell-what-does-21-mean). and [run scripts in the Background](https://oracle-base.com/articles/linux/linux-scripts-running-in-the-background)
-	/home/my_user/scripts/my_script.sh >> /home/my_user/scripts/logs/my_script.log 2>&1 &
-
-
 ## NCBI project download
 	Limit download to 1000 reads from file SRR519926.
 	fastq-dump -X 10000 --split-files SRR519926
@@ -638,7 +684,6 @@ count the number of sequences
 
 	https://github.com/jianshu93/RecruitmentPlot_blast
 
-
 ## Others
 
 compare if two files are identical or different
@@ -647,7 +692,6 @@ compare if two files are identical or different
 
 	&&: The AND Operator (&&). The second command will only execute if the first command has executed successfully i.e, its exit status is zero. 
 	||: The OR Operator (||).  much like an 'else' statement in programming. The above operator allow you to execute second command only if the execution of first command fails, i.e., the exit status of first command is '1'.
-
 
 ## bcftools
 
