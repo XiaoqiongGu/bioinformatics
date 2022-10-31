@@ -328,3 +328,10 @@ $0 is the name of the script, $1 is the first argument
 
 ### echo
 	echo -n -> 不会产生新的一行
+
+### [How to redirect output to a file and stdout](https://stackoverflow.com/questions/418896/how-to-redirect-output-to-a-file-and-stdout)
+	program [arguments...] 2>&1 | tee -a outfile
+	2>&1 dumps the stderr and stdout streams. tee outfile takes the stream it gets and writes it to the screen and to the file "outfile".
+	
+### [Redirect to log file](https://stackoverflow.com/questions/818255/in-the-shell-what-does-21-mean) and [run scripts in the Background](https://oracle-base.com/articles/linux/linux-scripts-running-in-the-background)
+	/home/my_user/scripts/my_script.sh >> /home/my_user/scripts/logs/my_script.log 2>&1 &
