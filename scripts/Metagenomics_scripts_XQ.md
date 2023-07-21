@@ -55,7 +55,7 @@ trim adapter and quality control
 
 trim phix reads
 
-	bbduk.sh -Xmx20g in1=R1.fastq.gz in2=R2.fsatq.gz ziplevle=9 out1=NoPhi/R1.fastq.gz out2=Nophi/R2.fastq.gz minlen=50 k=31 ref=phix174_ill.ref.fa.gz hdist=1 stats=log.txt
+	bbduk.sh -Xmx20g in1=R1.fastq.gz in2=R2.fsatq.gz ziplevel=9 out1=NoPhi/R1.fastq.gz out2=Nophi/R2.fastq.gz minlen=50 k=31 ref=phix174_ill.ref.fa.gz hdist=1 stats=log.txt
 
 trim human contamination
 
@@ -63,7 +63,7 @@ trim human contamination
 
 #### fastqc to check quality
 	mkdir fastqc
-	fastqc *.fasta.gz -o fastqc
+	fastqc *.fasta.gz -o fastqc -t 40
 	multiqc .
 
 ## fastax-toolkit
@@ -140,9 +140,12 @@ filter sequences length based on certain cut-off
 
 
 # Assembly
-### metaSpade  
+### Spade  
+isolate scripts
 
-basic scripts 
+	spades.py  --careful -1 R1.fasta.gz -2 R2.fasta.gz -o metaspade_assembly/
+
+metagenomics scripts 
 
 	spades.py  --meta -1 R1.fasta.gz -2 R2.fasta.gz -o metaspade_assembly/
 
@@ -150,11 +153,14 @@ cross-assembly, generate yaml file format
 
 	python metaspades.py --dataset your_yaml_file.yaml -t threads -m MAX_MEMORY_USAGE -k 21,33,55,77,99,127 -o assembled_viral_contigs
 
+
+
 filter spades folder - fitler minimum contig length
 
 	for x in *.fasta/;
 	do bioawk -c fastx '{ if(length($seq) > 500) { print ">"$name; print $seq }}' ${x}contigs.fasta > ${x}contigs.500bp.fasta
 	done	
+
 
 ### rnaspades
 
@@ -261,10 +267,11 @@ make blast database
 
 blastn 
 
-	blastn -db BlastformattedDB -query file.fasta  -out file_VS_database.txt -outfmt "6 std slen qcovs" -evalue 1e-5 -perc_identity 50 -num_threads 30 -max_target_seqs N
+	blastn -db BlastformattedDB -query file.fasta  -out file_VS_database.txt -outfmt "6 std slen qlen qcovs staxids" -evalue 1e-5 -perc_identity 50 -num_threads 30 -max_target_seqs N
 
 	blastn -db ucleotide_fasta_protein_homolog_model -query combined_entero.fasta -out entero_vs_card.txt -outfmt "6 std scovs" -evalue 1e-5 -perc_identity 90 -num_threads 40 -max_target_seqs 1
 
+	office workstation: /data1/database/NCBInt/nt 
 megablast
 
 	megablast -d \~/tools/NCBIdatabase/blastnt/nt -i scaffolds.500bp.fasta -e 1e-5 -m 8 -a 60 -o scaffolds.500bp_vs_NCBInt.megahit.m8 
@@ -309,6 +316,16 @@ blast output
     17 = Sequence Alignment/Map (SAM),
     18 = Organism Report
 
+entrez direct
+
+	esearch -db assembly -query "GCA_000005845" | elink -target taxonomy | efetch -format native -mode xml | grep ScientificName | awk -F ">|<" 'BEGIN{ORS=", ";}{print $3;}'
+
+	esearch -db nuccore -query "SAMN02441064" | elink -target taxonomy | esummary | xtract -pattern DocumentSummary -element TaxId
+
+	esummary -db nuccore -id NM_002826 | xtract -pattern DocumentSummary -element Caption,Title, TaxId
+
+	cat <filename> | epost -db nuccore | esummary -db nuccore | xtract -pattern DocumentSummary -element Caption,Title,TaxId
+
 filter out 
 
 format protein output
@@ -324,7 +341,8 @@ Extract open reading fram Prodigal
 
 	diamond makedb --in nr.faa -d nr
 	diamond blastp -d \~/tools/NCBIdatabase/Diamondnr/nr -q input.prodigal.faa -o output.prodigal.m8 -e 1e-5
-	cut -f1 input.prodigal.m8|rev|cut -f2- -d"\_"|rev|paste - input.prodigal.m8|cut -f1,3- > input.prodigal.contigs.m8
+	# cut -f1 input.prodigal.m8|rev|cut -f2- -d"\_"|rev|paste - input.prodigal.m8|cut -f1,3- > input.prodigal.contigs.m8
+	cut -f1 input.prodigal.m8|cut -f1-2 -d"_"|paste - input.prodigal.m8|cut -f1,3- > input.prodigal.contigs.m8
 	diamond blastp -d /scratch/users/xiaoqiong/database/nr.dmnd -q input.prodigal.faa -o output.prodigal.m8 -e 1e-5
 
 	
@@ -337,6 +355,14 @@ Megan
 	import from blast, load accession mapping file, specify mode, e-value
 	control+A, Tree-uncollapse all, export to csv, readName_to_taxonPath, assigned, tab
 
+### kraken2
+
+	kraken2 --db ${kraken_db} ${infasta} --output output.kraken --report output.kreport --use-names --threads 40
+
+### [centrifuge](https://gensoft.pasteur.fr/docs/centrifuge/1.0.4-beta/MANUAL)
+
+	centrifuge -x ${centrifuge_db} -q/f ${infastq/a} -S read_classifications.tsv --report-file read_report.summary.tsv -p/--threads 40
+
 
 # Binning
 ### metabat2
@@ -347,6 +373,7 @@ _remember to run bowtie2 to get depth.txt_  this bowtie2 script is for binning q
 	samtools view -bS spades.sam -@ 40 > spades.bam
 	samtools sort spades.bam -o spades.sorted.bam -@ 40
 	jgi_summarize_bam_contig_depths --outputDepth depth.txt *.sorted.bam
+	
 ### samtools
 convert a SAM file to a BAM file
 
@@ -354,11 +381,20 @@ convert a SAM file to a BAM file
 
 convert a BAM file to a SAM file
 
-	samtools view -h SAMPLE.bam > SAMPLE.sam
+	samtools view -h SAMPLE.bam > SAMPLE.sam #### -h means header
 
 sort a BAM file
 
 	samtools sort SAMPLE.bam -o SAMPLE_sorted.bam
+
+index a sorted BAM file
+
+	samtools index -b SAMPLE_sorted.bam -@ 40 SAMPLE_sorted.bam.bai
+
+bamtobed a sorted BAM file
+
+	bedtools bamtobed -i *.bam > *.bed
+	bedtools bamtobed -i *.bam -cigar > *.bed 
 
 sort by readName
 
@@ -429,7 +465,7 @@ sort sequences by q-value in ascending order
 	java -jar MarkDuplicates.jar
 
 ### checkm
-	checkm lineage_wf -f CheckM.txt -t 8 -x fa bins_dir/ bins/CheckM
+	checkm lineage_wf -f CheckM.txt -t 48 -x fa bins_dir/ bins/CheckM
 
 ## detect plasmid from WGS
 
@@ -457,7 +493,6 @@ Plasflow
 	bowtie2 -x database -1 R1.fasta.gz -2 R2.fasta.gz -S x.sam -p 40 --very-sensitive-local
 	samtools view -bS input.sam > output.bam -@ 40
 	samtools sort input.bam -o output.sorted.bam -@ 40
-
 	samtools index -b input_sorted.bam -@ 40 input_sorted.bam.bai
 
 	samtools idxstats *.input_sorted.bam > output.idxstats.txt
@@ -466,7 +501,8 @@ Plasflow
 
 	python get_count_table.py *.idxstat.txt > count.txt #sum up all the output.idxstats.txt to the summary table
 	
-	python RPKM.py #R: absolute reads to 
+	python RPKM.py #R: absolute reads to
+	Absolute2RPKM.R 
 
 
 # Ecology analysis
@@ -512,6 +548,20 @@ to make a for loop in the current folder which contains the bam file:
 		bam-readcount -w 1 -d 10000000 -f E.coli_BW25113_tRNA_reference.renamed.fasta ${x} Escherichia_coli_BW25113_K-12_substr_BW25113_tRNA-Leu-TAG-1-1 
 		python ../tools/brc-parser/brc-parser.py ${x%.bam}.txt
 	done
+
+
+for x in *.bam
+	do 
+		bam-readcount -w 1 -d 10000000 -f /data2/xiaoqiong/augmentin_meta/meta_augmentin_analysis/ecoli_snp/genome_assemblies_genome_fasta/GCF_000008865.2_ASM886v2_genomic.fna ${x} 
+		NC_002695.2
+
+		python ../tools/brc-parser/brc-parser.py ${x%.bam}.txt
+	done
+
+>NC_002695.2 Escherichia coli O157:H7 str. Sakai DNA, complete genome
+>NC_002127.1 Escherichia coli O157:H7 str. Sakai plasmid pOSAK1, complete sequence
+>NC_002128.1 Escherichia coli O157:H7 str. Sakai plasmid pO157, complete sequence
+
 
 ## vCONTACT2
 ### [installation](https://bitbucket.org/MAVERICLab/vcontact2/src/master/)
@@ -672,8 +722,15 @@ count the number of sequences
 	Cx=202*50/(50-37+1)=721X
 
 ## NCBI project download
+[download sratools](https://github.com/ncbi/sra-tools)
+[sratools wiki](https://github.com/ncbi/sra-tools/wiki)
+
 	Limit download to 1000 reads from file SRR519926.
 	fastq-dump -X 10000 --split-files SRR519926
+
+[faster-dump wiki](https://github.com/ncbi/sra-tools/wiki/HowTo:-fasterq-dump)
+
+	faster-dump 
 
 ## construct phylogenetic tree
 
@@ -703,7 +760,11 @@ output
 	
 bcftools mpileup to do genotpye likelyhood, [format](https://en.wikipedia.org/wiki/Variant_Call_Format)
 
-	bcftools mpileup --threads 40 -a FMT/AD,FMT/ADF,FMT/ADR -Ou -d 8000 -A -f ref.fna f.sorted.bam| bcftools call -Ov -A -M -c --threads 40 > snp/f.raw.vcf
+	bcftools mpileup --threads 40 -a FMT/AD,FMT/ADF,FMT/ADR,FMT/DP -Ou -d 8000 -A -f $ref $sorted.bam| bcftools call -Ov -A -M -c --threads 40 > snp/$f.raw.vcf
+
+	bcftools mpileup -Ou -d 8000 -f $ref $sorted.bam | bcftools call --threads 40 --ploidy 1 -mv -Ov -o $out_dir/$root.$aligner.$caller.vcf\n"; 
+	# the "v" in "-mv" specifies that the output file only contain variant sites; omit this to output all sites
+	# mA -> output all sites
 
 	AD: Read depth for each allele -> AD may not always sum to DP
 	ADF: Read depth for each allele on the forward strand
@@ -767,6 +828,12 @@ resources
 
 	https://github.com/sanger-pathogens/Roary/blob/master/contrib/roary_plots/roary_plots.ipynb
 
+## IGV batch process
+
+	https://github.com/igvteam/igv/wiki/Batch-commands
+	https://software.broadinstitute.org/software/igv/batch
+	https://github.com/stevekm/IGV-snapshot-automator
+	
 
 
 ## Sources

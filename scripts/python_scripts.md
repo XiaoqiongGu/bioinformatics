@@ -7,8 +7,8 @@
 	import numpy as np
 	import pandas as pd
 	import seaborn as sns;sns.set(color_codes=True)
-	sns.set_style(style="white")
 	sns.set(font_scale=2)
+	sns.set_style(style="white")
 	import matplotlib.pyplot as plt
 	from scipy import stats
 	from scipy.stats import zscore
@@ -29,6 +29,10 @@ import files from excel or csv or txt
 	x = pd.read_excel("x.xlsx",sheet_name='x')
 	x = pd.read_csv('x.txt',sep='\t',header=None/0,index_col=False/0/'columnA') 
 	#no row as header, #no column/the 1st column/column A as index header
+
+import files with multiple delimiter
+
+	x = pd.read_csv('x.txt',sep=':|\',header=None, engine='python')
 
 export dataframe to csv or txt
 
@@ -122,6 +126,14 @@ get the relative abundance of the absolute OTU table
 get the mean or average of the dataframe
 
 	df.mean(axis=0)
+
+### read, open file using file handler
+
+open the file
+
+	with open('the-zen-of-python.txt') as f:
+		[print(line) for line in f.readlines()]
+
 
 
 

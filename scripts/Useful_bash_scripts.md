@@ -13,6 +13,8 @@
 	nproc --all
 	lscpu -p [linux]
 	sysctl [MacOS]
+### generate and verify files with md5 checksum
+	md5sum *.gz
 ### to count the number of columns in files with different column number
 	awk '{print NF}' file.txt| sort -nu | tail -n 1 #NF is the built-in variable
 ### count the number of reads in fastq files
@@ -94,6 +96,10 @@
 	grep -H "keyword" *.txt #can show the list of file containing keyword as also show the file names
 	grep -w "0$" test.txt #can extract the lines that only containing 0 in the end
 
+### GPU usage check
+
+	nvidia-smi
+	# nvidia-smi - NVIDIA System Management Interface program
 
 ### Merge multiple files by common field
 https://stackoverflow.com/questions/13710876/merge-multiple-files-by-common-field-unix
@@ -335,3 +341,4 @@ $0 is the name of the script, $1 is the first argument
 	
 ### [Redirect to log file](https://stackoverflow.com/questions/818255/in-the-shell-what-does-21-mean) and [run scripts in the Background](https://oracle-base.com/articles/linux/linux-scripts-running-in-the-background)
 	/home/my_user/scripts/my_script.sh >> /home/my_user/scripts/logs/my_script.log 2>&1 &
+	
