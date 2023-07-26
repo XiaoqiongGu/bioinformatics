@@ -494,13 +494,11 @@ Plasflow
 	samtools view -bS input.sam > output.bam -@ 40
 	samtools sort input.bam -o output.sorted.bam -@ 40
 	samtools index -b input_sorted.bam -@ 40 input_sorted.bam.bai
-
-	samtools idxstats *.input_sorted.bam > output.idxstats.txt
+	samtools idxstats x.input_sorted.bam > x.idxstats.txt
 
 	samtools depth input_sorted.bam > output.depth.txt  #to see the SNP coverage evolution etc. optional
 
 	python get_count_table.py *.idxstat.txt > count.txt #sum up all the output.idxstats.txt to the summary table
-	
 	python RPKM.py #R: absolute reads to
 	Absolute2RPKM.R 
 
