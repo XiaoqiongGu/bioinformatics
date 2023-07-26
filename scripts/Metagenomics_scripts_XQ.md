@@ -496,11 +496,10 @@ Plasflow
 	samtools index -b input_sorted.bam -@ 40 input_sorted.bam.bai
 	samtools idxstats x.input_sorted.bam > x.idxstats.txt
 
-	samtools depth input_sorted.bam > output.depth.txt  #to see the SNP coverage evolution etc. optional
+	samtools depth input_sorted.bam > output.depth.txt  # to see the SNP coverage evolution etc. optional
 
-	python get_count_table.py *.idxstat.txt > count.txt #sum up all the output.idxstats.txt to the summary table
-	python RPKM.py #R: absolute reads to
-	Absolute2RPKM.R 
+	python get_count_table.py *.idxstats.txt > count.txt # sum up all the output.idxstats.txt to the summary table
+	python absolutereads2RPKM.py count.txt rpkm.txt # pipeline folder
 
 
 # Ecology analysis

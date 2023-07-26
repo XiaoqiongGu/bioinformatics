@@ -57,6 +57,9 @@
 	xargs mkdir <list.txt
 >xargs simply "flattens" your text file by replacing newlines with spaces, thereby invoking mkdir with a long list of arguments containing all your directory names at once instead of one at a time.
 
+### how to split the strings based on delimiter and put specific columns into varible 
+	x=$(cat $string|cut -d "\" -f2) 
+
 ### Download NCBInr/nt database
 	wget 'ftp://ftp.ncbi.nlm.nih.gov/blast/db/nr.*.tar.gz'
 	cat nr.*.tar.gz | tar -zxvi -f - -C .
@@ -230,7 +233,7 @@ sum certain numbers in a column using awk. I would like to sum just column 3 of 
 	echo "your name is $NAME"
 
 $0 is the name of the script, $1 is the first argument
-## extract seqs based on seqids
+### extract seqs based on seqids
 	WPB073-TGCTACAT_S1_L006.kraken.id.filter
 	seqtk subseq in.fq name.lst > out.fq
 	Note: Use 'samtools faidx' if only a few regions are intended   #this is not good to use
@@ -246,14 +249,14 @@ $0 is the name of the script, $1 is the first argument
 
 	bioawk -c fastx '{print ">"$name; print $seq}'   #useful link https://www.biostars.org/p/363676/
 
-# split usage
+### split usage
 	split -d -b 200M -l 500 file.txt log
 	-b file sizes
 	-l line numbers
 	-d rename the splited file with log1, log2, log3, ...., logn
 	split -l 1000
 
-## sum up specific column numbers
+### sum up specific column numbers
 	awk '{sum+=$1;}END{print $1}' infile > outfile
 	
 	awk '{for (i=1;i<=NF;i++)$i=(a[i]+=$i)}END{print}' file
