@@ -45,12 +45,22 @@ view all the column content
 
 ### file processing
 
-[merge two files based on share column](https://stackoverflow.com/questions/40468069/merge-two-dataframes-by-index/40468090#40468090)
+[merge two dfs based on shared column](https://stackoverflow.com/questions/40468069/merge-two-dataframes-by-index/40468090#40468090)
 
 	pd.merge(df1, df2, left_index=True, right_index=True, how='inner') 
 	pd.merge(df1, df2, left_on='df1_key', right_on='df2_key',how="outer")
 	how type: inner, outer, right, left
 	merge by two columns: left_on=['A1','A2'], right_on = ['B1','B2'])
+
+
+merge multiple dfs based on shared column
+
+	dataframes = [df1, df2, df3, df4, df5, df6]
+	final_merged = df1  # Start with the first dataframe
+
+	for df in dataframes[1:]:  # Skip the first one, as we already started with it
+		final_merged = pd.merge(final_merged, df, on='key')
+
 
 melt the df, wide to long format needed for seaborn plot in hue setting
 
@@ -226,10 +236,16 @@ split the columns
 
 
 sort values and choose the top N index
+	
 	pd.sort_values(by='A',ascending=False)[:N].index()
 
 select columns containing partial string
+
 	df[df['A'].str.contains("keyword")]
+
+deselect columns containing partial string
+
+	df[~df['A'].str.contains("keyword1|keyword2")]
 
 ### index
 
@@ -315,13 +331,13 @@ join, which is left join by default:
 
 combine two series 	or dataframe
 
-concat, which is outer join by default:
+concat vertically - one on top of the other:
 
 	pd.concat([df1, df2], axis='rows') 
 
-combine two dataframe by joint rows
+concat horizontally - side by side
 
-	pd.concat((df1,df2),axis='columns',sort=False)
+	pd.concat((df1,df2), axis='columns',sort=False)
 
 
 ### numpy
@@ -402,10 +418,10 @@ gridspec
 
 ## seaborn make the picture - do a function 一劳永逸
 	def create_heatmap(dataframe, title):
-	import seaborn as sns
-	import matplotlib.pyplot as pyplot	
-	sns_plot=sns.clustermap(dataframe,mask=False,row_cluster=True,linewidth=.05,linecolor="grey",col_cluster=False,standard_scale=0,cmap="Greys",square=True,figsize=(12,(.2*(len(dataframe.index)))))
-	sns_plot.savefig("{}.png".format(title))
+		import seaborn as sns
+		import matplotlib.pyplot as pyplot
+		sns_plot = sns.clustermap(dataframe,mask=False,row_cluster=True,linewidth=.05,linecolor="grey",col_cluster=False,standard_scale=0,cmap="Greys",square=True,figsize=(12,(.2*(len(dataframe.index)))))
+		sns_plot.savefig("{}.png".format(title))
 	return sns_plot
 
 
@@ -718,6 +734,25 @@ choose different types
 ### python regex
 https://www.programiz.com/python-programming/regex
 
+| Special Character | Meaning                                                                      | Escaped Representation |
+|:-----------------:|:----------------------------------------------------------------------------:|:----------------------:|
+| `.`               | Matches any character (except newline)                                       | `\.`                    |
+| `^`               | Matches the start of a string                                                | `\^`                    |
+| `$`               | Matches the end of a string                                                  | `\$`                    |
+| `*`               | Matches 0 or more repetitions of the preceding character/group               | `\*`                    |
+| `+`               | Matches 1 or more repetitions of the preceding character/group               | `\+`                    |
+| `?`               | Matches 0 or 1 repetition of the preceding character/group                   | `\?`                    |
+| `{`               | Start specifying an exact quantifier                                         | `\{`                    |
+| `}`               | End specifying an exact quantifier                                           | `\}`                    |
+| `[`               | Start of a character class/set                                               | `\[`                    |
+| `]`               | End of a character class/set                                                 | `\]`                    |
+| `(`               | Start grouping parts of the expression                                       | `\(`                    |
+| `)`               | End grouping parts of the expression                                         | `\)`                    |
+| `|`               | Acts as a logical OR                                                         | `\|`                    |
+| `\`               | The escape character itself                                                  | `\\`                    |
+
+
+
 ### python 3
 	string formatting
 	name ='giacomo'
@@ -768,6 +803,16 @@ run bash scripts in python scripts and get the output of bash scripts
 
 	__name__ 是当前模块名，当模块被直接运行时模块名为 __main__ 。这句话的意思就是，当模块被直接运行时，以下代码块将被运行，当模块是被导入时，代码块不被运行。
 
+### os.path commonly used
+
+	os.path.join(path, *paths)
+	os.path.dirname(path)
+	os.path.basename(path)
+	os.path.exists(path)
+	os.path.isfile(path)
+	os.path.isdir(path)
+	os.path.splitext(path)
+	os.path.split(path)
 
 
 ### color hex code
