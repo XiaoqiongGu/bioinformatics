@@ -242,7 +242,7 @@ $0 is the name of the script, $1 is the first argument
 	filterbyname.sh in=WPB073-TGCTACAT_S1_L006_R1_001.fastq.gz in2=WPB073-TGCTACAT_S1_L006_R2_001.fastq.gz out=WPB073-TGCTACAT_S1_R1.filtered.fastq out2=WPB073-TGCTACAT_S1_R2.filtered.fastq names=WPB073-TGCTACAT_S1_L006.kraken.id.filter
 
 
-# Linearizing the complete fasta file
+### Linearizing the complete fasta file
 	while read line;do if [ "${line:0:1}" == ">" ]; then echo -e "\n"$line; else echo $line | tr -d '\n' ; fi; done < input.fasta > output.fasta #too slow
 	
 	sed -e 's/\(^>.*$\)/#\1#/' scaffolds.fasta | tr -d "\r" | tr -d "\n" | sed -e 's/$/#/' | tr "#" "\n" | sed -e '/^$/d'

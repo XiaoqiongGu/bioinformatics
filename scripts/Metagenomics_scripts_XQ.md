@@ -51,7 +51,7 @@ special awk variables:
 
 trim adapter and quality control
 
-	bbduk.sh -Xmx40g in1=R1.fastq.gz in2=R2.fsatq.gz ziplevel=9 out1=trimmed/R1.fastq.gz out2=trimmed/R2.fastq.gz ref=database minlen=50 qtrim=rl trimq=20 ktrim=r k=25 mink=11  hdist=1 trimpolya=10 stats=log.txt
+	bbduk.sh -Xmx40g in1=R1.fastq.gz in2=R2.fsatq.gz ziplevel=9 out1=trimmed/R1.fastq.gz out2=trimmed/R2.fastq.gz ref=database minlen=50 qtrim=rl trimq=20 ktrim=r k=23 mink=11  hdist=1 tpe tbo trimpolya=10 stats=x.log.txt
 
 trim phix reads
 
@@ -495,11 +495,12 @@ Plasflow
 	samtools sort input.bam -o output.sorted.bam -@ 40
 	samtools index -b input_sorted.bam -@ 40 input_sorted.bam.bai
 	samtools idxstats x.input_sorted.bam > x.idxstats.txt
-
-	samtools depth input_sorted.bam > output.depth.txt  # to see the SNP coverage evolution etc. optional
-
 	python get_count_table.py *.idxstats.txt > count.txt # sum up all the output.idxstats.txt to the summary table
 	python absolutereads2RPKM.py count.txt rpkm.txt # pipeline folder
+	
+	samtools depth input_sorted.bam > output.depth.txt  # to see the SNP coverage evolution etc. optional
+
+
 
 
 # Ecology analysis
@@ -707,6 +708,38 @@ count the number of sequences
 
 	zcat my.fastq.gz | echo $((`wc -l`/4))
 
+# STAR usage
+## Creating a genome index
+
+	STAR --runThreadN 40 \
+	--runMode genomeGenerate \
+	--genomeDir /data2/ZenNa/mice_data/STAR/mm39_index \
+	--genomeFastaFiles /data2/ZenNa/mice_data/ref/GCF_000001635.27/GCF_000001635.27_GRCm39_genomic.fna \
+	--sjdbGTFfile /data2/ZenNa/mice_data/ref/GCF_000001635.27/genomic.gtf
+
+
+## Aligning reads
+
+	mkdir STAR
+	STAR --genomeDir /data2/ZenNa/mice_data/STAR/mm39_index/ \
+	--runThreadN 40 \
+	--readFilesCommand zcat \
+	--readFilesIn /data2/ZenNa/mice_data/trimmed/SRR16633917_1.fastq.gz /data2/ZenNa/mice_data/trimmed/SRR16633917_2.fastq.gz \
+	--outFileNamePrefix  SRR16633917 \
+	--outSAMtype BAM SortedByCoordinate \
+	--outSAMunmapped Within \
+	--outSAMattributes Standard  \
+	--quantMode TranscriptomeSAM
+
+## htseq-count 
+	
+	htseq-count -f bam -s no -t feature_type input.bam annotation.gtf > output.counts
+	htseq-count -f bam -s no input.bam annotation.gtf > counts.txt
+
+
+
+
+
 ### taxonkit manual, https://wemp.app/posts/91cab928-7c98-4ea3-b54a-defaff169a08
 # convert the accession id to the taxid
 	blastdbcmd -db /data/database/NCBI_nt/nt -entry all -outfmt "%a %T"|pigz -c > nt.acc2taxid.txt.gz
@@ -843,4 +876,7 @@ resources
 * <http://genomics-array.blogspot.com/2010/11/some-unixperl-oneliners-for.html>
 * <http://bioexpressblog.wordpress.com/2013/04/05/split-multi-fasta-sequence-file/>
 * <http://www.commandlinefu.com/>
-* [biostarthandbook-Sep-2021]()
+* [biostarthandbook-Sep-2021]
+
+
+
